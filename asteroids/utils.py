@@ -4,7 +4,7 @@ import pygame
 
 def load_image(image_name: str) -> pygame.Surface:
     file = files('asteroids.resources').joinpath(f'{image_name}.png')
-    return pygame.image.load(file).convert()
+    return pygame.image.load(file).convert_alpha()
 
 
 def repeat_surface(size: tuple[int, int], image: pygame.Surface) -> pygame.Surface:
