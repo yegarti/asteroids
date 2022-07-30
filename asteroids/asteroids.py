@@ -19,10 +19,9 @@ class Asteroids:
         self._clock = pygame.time.Clock()
         self.background = repeat_surface(self.screen.get_size(),
                                          load_image('purple'))
-        self.player = Player()
-        # self._player: Actor = Actor(image=img,
-        #                             position=self._get_center(),
-        #                             velocity=(0, 0))
+        self.player = Player(image='player',
+                             position=self._get_center(),
+                             scale=0.5)
         self.all_actors = pygame.sprite.Group()
         self.all_actors.add(self.player)
         # self.all_actors.draw()

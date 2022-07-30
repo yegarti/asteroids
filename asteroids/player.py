@@ -9,10 +9,8 @@ class Player(Actor):
     VEL_SPEED = 0.01
     TURN_SPEED = 1.5
 
-    def __init__(self):
-        super().__init__('player', scale=.5)
-        self.position.x = 300
-        self.position.y = 300
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)

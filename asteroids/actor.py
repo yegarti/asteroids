@@ -8,14 +8,15 @@ from asteroids.utils import load_image
 
 
 class Actor(pg.sprite.Sprite):
-    def __init__(self, image_name, scale=1.):
+    def __init__(self, image, scale=1.,
+                 position=(0, 0)):
         super().__init__()
-        self._original_image = load_image(image_name)
+        self._original_image = load_image(image)
         self._scale(scale)
         self.image: pg.Surface = self._original_image.copy()
         self.rect = self.image.get_rect()
         self.velocity = Vector2(0, 0)
-        self.position = Vector2(0, 0)
+        self.position = Vector2(position)
         self.angle = 0
 
     def _scale(self, factor):
