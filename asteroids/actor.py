@@ -1,3 +1,5 @@
+import math
+
 import pygame as pg
 from pygame.math import Vector2
 import pygame.transform
@@ -8,6 +10,12 @@ from asteroids.utils import load_image
 
 
 class Actor(pg.sprite.Sprite):
+    ACCELERATION = 0.01
+    VELOCITY_MULT = .5
+    ANGULAR_SPEED = 1.5
+    MAX_VELOCITY = 1.
+    THRUST_MULT = .01
+
     def __init__(self, image, scale=1.,
                  position=(0, 0)):
         super().__init__()
@@ -18,6 +26,8 @@ class Actor(pg.sprite.Sprite):
         self.velocity = Vector2(0, 0)
         self.position = Vector2(position)
         self.angle = 0
+        self.thrust = 0
+        self._delta = 0
 
     def _scale(self, factor):
         self._original_image = pg.transform.scale(
@@ -26,7 +36,12 @@ class Actor(pg.sprite.Sprite):
              factor * self._original_image.get_height()))
 
     def update(self, dt, keys) -> None:
-        self.position += self.velocity * dt
+        self._delta = dt
+        dx = -math.sin(math.radians(self.angle)) * self.thrust
+        dy = -math.cos(math.radians(self.angle)) * self.thrust
+        self.velocity += (dx, dy)
+        self.thrust = 0
+        self.position += self.velocity * dt * self.VELOCITY_MULT
         self._rotate(self.angle)
 
     def _rotate(self, angle):
@@ -50,8 +65,18 @@ class Actor(pg.sprite.Sprite):
         self.image = rotated_image
         self.rect = rotated_image_rect
 
-    def rotate_ccw(self, angle):
-        self.angle += angle
+    def accelerate(self):
+        self.thrust = self.THRUST_MULT
 
-    def rotate_cw(self, angle):
-        self.angle -= angle
+    def decelerate(self):
+        self.thrust = -self.THRUST_MULT
+
+    def rotate_ccw(self):
+        self.angle += self.ANGULAR_SPEED
+        if self.angle >= 360:
+            self.angle = 0
+
+    def rotate_cw(self):
+        self.angle -= self.ANGULAR_SPEED
+        if self.angle <= 0:
+            self.angle = 360
