@@ -39,24 +39,12 @@ class Asteroids:
                     event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 self.is_running = False
 
-    def _update_player(self):
-        keys = pg.key.get_pressed()
-        # if keys[K_d]:
-        #     self.player.rotate_cw(self.delta)
-        # if keys[K_a]:
-        #     self.player.rotate_ccw(self.delta)
-        if keys[K_s]:
-            self.player.velocity.y += 0.01
-        if keys[K_w]:
-            self.player.velocity.y -= 0.01
-        pass
-
     def update(self):
         dt = self._clock.tick(60)
+        keys = pg.key.get_pressed()
         self.delta = dt
-        self.all_actors.update(dt)
+        self.all_actors.update(dt, keys)
         self._handle_events()
-        self._update_player()
         # self.screen.blit(pg.Surface(rect.size), (0, 0))
 
     def render(self):
