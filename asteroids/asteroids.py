@@ -55,3 +55,6 @@ class Asteroids:
         # self.screen.blit(self._player.image, self._player.rect)
         # self.screen.blit(image, rect)
         pg.display.flip()
+
+    def exit(self):
+        pg.quit()

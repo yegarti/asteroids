@@ -8,6 +8,7 @@ from asteroids.utils import load_image
 class Player(Actor):
     VEL_SPEED = 0.01
     TURN_SPEED = 1.5
+    MAX_VELOCITY = .5
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,3 +23,5 @@ class Player(Actor):
             self.velocity.y += self.VEL_SPEED
         if keys[K_w]:
             self.velocity.y -= self.VEL_SPEED
+        self.velocity.y = max(self.velocity.y, -self.MAX_VELOCITY)
+        self.velocity.y = min(self.velocity.y, self.MAX_VELOCITY)

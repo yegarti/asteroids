@@ -8,6 +8,7 @@ def main():
     while game.is_running:
         game.update()
         game.render()
+    game.exit()
 
 
 if __name__ == '__main__':
