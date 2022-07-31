@@ -12,22 +12,26 @@ from asteroids.utils import load_image
 class Actor(pg.sprite.Sprite):
     ACCELERATION = 0.01
     VELOCITY_MULT = .5
-    ANGULAR_SPEED = 1.5
+    ANGULAR_SPEED = 1
     MAX_VELOCITY = 1.
     THRUST_MULT = .01
 
     def __init__(self, image, scale=1.,
-                 position=(0, 0)):
+                 position=(0, 0), velocity=(0, 0)):
         super().__init__()
+        self._screen_rect: pg.Rect = pg.display.get_surface().get_rect()
         self._original_image = load_image(image)
         self._scale(scale)
         self.image: pg.Surface = self._original_image.copy()
+        self.image.get_rect()
         self.rect = self.image.get_rect()
-        self.velocity = Vector2(0, 0)
+        self.velocity = Vector2(velocity)
         self.position = Vector2(position)
         self.angle = 0
         self.thrust = 0
         self._delta = 0
+        # call once to position rect correctly
+        self._rotate(0)
 
     def _scale(self, factor):
         self._original_image = pg.transform.scale(
@@ -79,4 +83,7 @@ class Actor(pg.sprite.Sprite):
     def rotate_cw(self):
         self.angle -= self.ANGULAR_SPEED
         if self.angle <= 0:
-            self.angle = 360
+            self.angle = 359
+
+    def inbounds(self):
+        return self._screen_rect.colliderect(self.rect)
