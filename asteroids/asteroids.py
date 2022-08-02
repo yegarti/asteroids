@@ -1,3 +1,4 @@
+import logging
 from random import random, choice
 
 import pygame as pg
@@ -11,11 +12,16 @@ from asteroids.player import Player
 from asteroids.utils import load_image, repeat_surface
 
 
+log = logging.getLogger(__name__)
+
+
 class Asteroids:
     MOVEMENT_SCALAR = 0.25
     ANGLE = 0.1
     PLAYER_SCALE = 0.5
     ASTEROID_MAX_VELOCITY = 0.5
+    ASTEROID_MIN_VELOCITY = 0.1
+    ASTEROID_OFF_SCREEN_POS_OFFSET = 100
     ASTEROID_MAX_ANGULAR_VELOCITY = 2.0
 
     def __init__(self, width, height, title='Asteroids'):
@@ -27,7 +33,7 @@ class Asteroids:
                                          load_image('purple'))
         self.player = Player(image='player',
                              position=self._get_center(),
-                             scale=0.5)
+                             scale=self.PLAYER_SCALE)
         self.all_actors = pygame.sprite.Group()
         self.all_actors.add(self.player)
 
@@ -51,23 +57,35 @@ class Asteroids:
         return value
 
     def _spawn_asteroid(self):
-        wlimit, hlimit = choice([
-            (0, self.screen.get_height()),
-            (self.screen.get_width(), 0),
-        ])
+        width, height = self.screen.get_width(), self.screen.get_height()
 
-        pos = (self._random_value_in_range(0, wlimit),
-               self._random_value_in_range(0, hlimit))
-        velocity = (self._random_value_in_range(-self.ASTEROID_MAX_VELOCITY,
-                                                self.ASTEROID_MAX_VELOCITY),
-                    self._random_value_in_range(-self.ASTEROID_MAX_VELOCITY,
-                                                self.ASTEROID_MAX_VELOCITY))
-        # pos = (400, 400)
+        spawn_location = choice(['top', 'left', 'right', 'bottom'])
+        x_vel = [-self.ASTEROID_MAX_VELOCITY, self.ASTEROID_MAX_VELOCITY]
+        y_vel = [-self.ASTEROID_MAX_VELOCITY, self.ASTEROID_MAX_VELOCITY]
+        match spawn_location:
+            case 'top':
+                pos = [self._random_value_in_range(0, height), -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                y_vel[0] = self.ASTEROID_MIN_VELOCITY
+            case 'left':
+                pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, width)]
+                x_vel[0] = self.ASTEROID_MIN_VELOCITY
+            case 'right':
+                pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, height)]
+                x_vel[1] = -self.ASTEROID_MIN_VELOCITY
+            case 'bottom':
+                pos = [self._random_value_in_range(0, height), width + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                y_vel[1] = -self.ASTEROID_MIN_VELOCITY
+            case _:
+                raise ValueError(f'Unknown spawn location: {spawn_location}')
+
+        velocity = (self._random_value_in_range(*x_vel),
+                    self._random_value_in_range(*y_vel))
 
         ang_vel = self._random_value_in_range(-self.ASTEROID_MAX_ANGULAR_VELOCITY,
                                               self.ASTEROID_MAX_ANGULAR_VELOCITY)
         asteroid = Asteroid(angular_velocity=ang_vel, image='asteroid',
                             position=pos, velocity=velocity)
+        log.info("Spawned %s", asteroid)
         self.all_actors.add(asteroid)
 
     def update(self):

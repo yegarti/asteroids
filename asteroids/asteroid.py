@@ -24,3 +24,9 @@ class Asteroid(Actor):
                 print('ttl')
         self.ttl_ms -= dt
         self.rotate_cw()
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} -'\
+               f' pos={self.position!r}'\
+               f' velocity={self.velocity!r}'\
+               f' ang_vel={self.ANGULAR_SPEED}'

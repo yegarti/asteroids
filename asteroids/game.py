@@ -1,5 +1,8 @@
 import pygame
+import logging
 from asteroids.asteroids import Asteroids
+
+logging.basicConfig(level=logging.INFO)
 
 
 def main():
