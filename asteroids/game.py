@@ -1,8 +1,13 @@
+import os
+import time
+
 import pygame
 import logging
 from asteroids.asteroids import Asteroids
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=os.getenv('ASTEROID_LOG_LEVEL', 'ERROR'),
+                    format='[%(asctime)s.%(msecs)03d] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+                    datefmt='%H:%M:%S')
 
 
 def main():
@@ -11,7 +16,8 @@ def main():
     while game.is_running:
         game.update()
         game.render()
-    game.exit()
+    pygame.quit()
+    # time.sleep(1)
 
 
 if __name__ == '__main__':

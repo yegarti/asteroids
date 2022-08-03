@@ -23,22 +23,29 @@ class Asteroids:
     ASTEROID_MIN_VELOCITY = 0.1
     ASTEROID_OFF_SCREEN_POS_OFFSET = 100
     ASTEROID_MAX_ANGULAR_VELOCITY = 2.0
+    BACKGROUND_IMAGE = 'purple'
+    PLAYER_IMAGE = 'player'
+    SPAWN_ASTEROID_FREQUENCY_MS = 1000
 
     def __init__(self, width, height, title='Asteroids'):
         pg.display.set_caption(title)
+        log.debug('Setting screen to (%d,%d)', width, height)
         self.screen = pg.display.set_mode((width, height))
         self.is_running = True
         self._clock = pygame.time.Clock()
+        log.debug("Setting background to '%s'", self.BACKGROUND_IMAGE)
         self.background = repeat_surface(self.screen.get_size(),
-                                         load_image('purple'))
-        self.player = Player(image='player',
+                                         load_image(self.BACKGROUND_IMAGE))
+        self.player = Player(image=self.PLAYER_IMAGE,
                              position=self._get_center(),
                              scale=self.PLAYER_SCALE)
+        log.debug('Added player %r', self.player)
         self.all_actors = pygame.sprite.Group()
         self.all_actors.add(self.player)
 
         self.delta = 0
-        pg.time.set_timer(AsteroidsEvent.SPAWN_ASTEROID, 1000)
+        log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
+        pg.time.set_timer(AsteroidsEvent.SPAWN_ASTEROID, self.SPAWN_ASTEROID_FREQUENCY_MS)
 
     def _get_center(self):
         return (self.screen.get_width() // 2,
@@ -48,8 +55,10 @@ class Asteroids:
         for event in pg.event.get():
             if event.type == pg.QUIT or \
                     event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                log.debug('Quit event')
                 self.is_running = False
             if event.type == AsteroidsEvent.SPAWN_ASTEROID:
+                log.debug('Spawn asteroid event')
                 self._spawn_asteroid()
 
     def _random_value_in_range(self, min_val: float, max_val: float):
@@ -78,6 +87,9 @@ class Asteroids:
             case _:
                 raise ValueError(f'Unknown spawn location: {spawn_location}')
 
+        log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
+                  spawn_location, *pos, x_vel, y_vel)
+
         velocity = (self._random_value_in_range(*x_vel),
                     self._random_value_in_range(*y_vel))
 
@@ -92,13 +104,13 @@ class Asteroids:
         dt = self._clock.tick(60)
         keys = pg.key.get_pressed()
         self.delta = dt
+        log.debug("Updating actors")
         self.all_actors.update(dt, keys)
+        log.debug("Handling game events")
         self._handle_events()
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
+        log.debug("Drawing all actors")
         self.all_actors.draw(self.screen)
         pg.display.flip()
-
-    def exit(self):
-        pg.quit()

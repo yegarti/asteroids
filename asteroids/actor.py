@@ -1,12 +1,13 @@
+import logging
 import math
 
 import pygame as pg
 from pygame.math import Vector2
 import pygame.transform
 
-
-# @dataclass(unsafe_hash=True)
 from asteroids.utils import load_image
+
+log = logging.getLogger(__name__)
 
 
 class Actor(pg.sprite.Sprite):
@@ -44,8 +45,11 @@ class Actor(pg.sprite.Sprite):
         dx = -math.sin(math.radians(self.angle)) * self.thrust
         dy = -math.cos(math.radians(self.angle)) * self.thrust
         self.velocity += (dx, dy)
+        log.debug('Velocity: (%f, %f)', *self.velocity)
+        log.debug('Thrust on: %r', self.thrust > 0)
         self.thrust = 0
         self.position += self.velocity * dt * self.VELOCITY_MULT
+        log.debug('Position: (%f, %f)', *self.position)
         self._rotate(self.angle)
 
     def _rotate(self, angle):
@@ -77,13 +81,22 @@ class Actor(pg.sprite.Sprite):
 
     def rotate_ccw(self):
         self.angle += self.ANGULAR_SPEED
+        log.debug("Rotated CCW to %f", self.angle)
         if self.angle >= 360:
             self.angle = 0
 
     def rotate_cw(self):
         self.angle -= self.ANGULAR_SPEED
+        log.debug("Rotated CW to %f", self.angle)
         if self.angle <= 0:
             self.angle = 359
 
     def inbounds(self):
         return self._screen_rect.colliderect(self.rect)
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} -' \
+               f' pos={self.position!r}' \
+               f' velocity={self.velocity!r}' \
+               f' ang_vel={self.ANGULAR_SPEED}' \
+               f'>'

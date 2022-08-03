@@ -1,4 +1,9 @@
+import logging
+
 from asteroids.actor import Actor
+
+
+log = logging.getLogger(__name__)
 
 
 class Asteroid(Actor):
@@ -17,16 +22,10 @@ class Asteroid(Actor):
 
         if not inbounds:
             if self.spawned:
+                log.debug("Asteroid out of bound")
                 self.kill()
-                print('bye')
             elif self.ttl_ms < 0:
+                log.debug("Asteroid time to live passed and not spawned")
                 self.kill()
-                print('ttl')
         self.ttl_ms -= dt
         self.rotate_cw()
-
-    def __repr__(self):
-        return f'<{self.__class__.__name__} -'\
-               f' pos={self.position!r}'\
-               f' velocity={self.velocity!r}'\
-               f' ang_vel={self.ANGULAR_SPEED}'
