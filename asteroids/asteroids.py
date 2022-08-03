@@ -1,4 +1,5 @@
 import logging
+import math
 from random import random, choice
 
 import pygame as pg
@@ -7,6 +8,7 @@ from pygame.locals import *
 
 from asteroids.actor import Actor
 from asteroids.asteroid import Asteroid
+from asteroids.bullet import Bullet
 from asteroids.events import AsteroidsEvent
 from asteroids.player import Player
 from asteroids.utils import load_image, repeat_surface
@@ -26,6 +28,7 @@ class Asteroids:
     BACKGROUND_IMAGE = 'purple'
     PLAYER_IMAGE = 'player'
     SPAWN_ASTEROID_FREQUENCY_MS = 1000
+    BULLET_SPEED = 1.
 
     def __init__(self, width, height, title='Asteroids'):
         pg.display.set_caption(title)
@@ -39,9 +42,11 @@ class Asteroids:
         self.player = Player(image=self.PLAYER_IMAGE,
                              position=self._get_center(),
                              scale=self.PLAYER_SCALE)
-        log.debug('Added player %r', self.player)
+        log.info('Added player %r', self.player)
         self.all_actors = pygame.sprite.Group()
         self.all_actors.add(self.player)
+        self.asteroids = pg.sprite.Group()
+        self.bullets = pg.sprite.Group()
 
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
@@ -60,6 +65,9 @@ class Asteroids:
             if event.type == AsteroidsEvent.SPAWN_ASTEROID:
                 log.debug('Spawn asteroid event')
                 self._spawn_asteroid()
+            if event.type == AsteroidsEvent.SHOT_BULLET:
+                log.debug('Shot bullet event')
+                self._shot()
 
     def _random_value_in_range(self, min_val: float, max_val: float):
         value = random() * (max_val - min_val) + min_val
@@ -98,7 +106,20 @@ class Asteroids:
         asteroid = Asteroid(angular_velocity=ang_vel, image='asteroid',
                             position=pos, velocity=velocity)
         log.info("Spawned %s", asteroid)
+        self.asteroids.add(asteroid)
         self.all_actors.add(asteroid)
+
+    def _shot(self):
+        pos = self.player.position
+        angle = self.player.angle
+        x = -math.sin(math.radians(angle))
+        y = -math.cos(math.radians(angle))
+        velocity = pg.math.Vector2(x, y) * self.BULLET_SPEED
+        bullet = Bullet(image='bullet',
+                        position=pos, velocity=velocity, angle=angle, scale=.8)
+        log.info("Shot bullet %s", bullet)
+        self.bullets.add(bullet)
+        self.all_actors.add(bullet)
 
     def update(self):
         dt = self._clock.tick(60)
@@ -112,5 +133,7 @@ class Asteroids:
     def render(self):
         self.screen.blit(self.background, (0, 0))
         log.debug("Drawing all actors")
-        self.all_actors.draw(self.screen)
+        self.bullets.draw(self.screen)
+        self.asteroids.draw(self.screen)
+        self.screen.blit(self.player.image, self.player.rect)
         pg.display.flip()

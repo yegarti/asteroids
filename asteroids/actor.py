@@ -18,7 +18,7 @@ class Actor(pg.sprite.Sprite):
     THRUST_MULT = .01
 
     def __init__(self, image, scale=1.,
-                 position=(0, 0), velocity=(0, 0)):
+                 position=(0, 0), velocity=(0, 0), angle=0):
         super().__init__()
         self._screen_rect: pg.Rect = pg.display.get_surface().get_rect()
         self._original_image = load_image(image)
@@ -28,7 +28,7 @@ class Actor(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.velocity = Vector2(velocity)
         self.position = Vector2(position)
-        self.angle = 0
+        self.angle = angle
         self.thrust = 0
         self._delta = 0
         # call once to position rect correctly
