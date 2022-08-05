@@ -1,5 +1,7 @@
 import logging
 
+import pygame
+
 from asteroids.actor import Actor
 
 
@@ -12,6 +14,7 @@ class Asteroid(Actor):
         self.ANGULAR_SPEED = angular_velocity
         self.spawned = False
         self.ttl_ms = 5000
+        self.health = 2
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
@@ -27,5 +30,7 @@ class Asteroid(Actor):
             elif self.ttl_ms < 0:
                 log.debug("Asteroid time to live passed and not spawned")
                 self.kill()
+        if self.is_dead():
+            self.kill()
         self.ttl_ms -= dt
         self.rotate_cw()

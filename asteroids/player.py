@@ -13,6 +13,7 @@ class Player(Actor):
     def __init__(self, image, *args, **kwargs):
         super().__init__(image, *args, **kwargs)
         self._cooldown = 0
+        self.health = 1
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)

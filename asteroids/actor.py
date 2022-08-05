@@ -16,9 +16,11 @@ class Actor(pg.sprite.Sprite):
     ANGULAR_SPEED = 1
     MAX_VELOCITY = 1.
     THRUST_MULT = .01
+    HITBOX_RADIUS_RATIO = 0.9
+    HIT_DURATION = .1
 
     def __init__(self, image, scale=1.,
-                 position=(0, 0), velocity=(0, 0), angle=0):
+                 position=(0, 0), velocity=(0, 0), angle=0, health=1.):
         super().__init__()
         self._screen_rect: pg.Rect = pg.display.get_surface().get_rect()
         self._original_image = load_image(image)
@@ -30,9 +32,10 @@ class Actor(pg.sprite.Sprite):
         self.position = Vector2(position)
         self.angle = angle
         self.thrust = 0
+        self.health = health
         self._delta = 0
-        # call once to position rect correctly
-        self._rotate(0)
+        self.radius = self.image.get_width() / 2 * self.HITBOX_RADIUS_RATIO
+        self._update_physics()
 
     def _scale(self, factor):
         self._original_image = pg.transform.scale(
@@ -42,15 +45,20 @@ class Actor(pg.sprite.Sprite):
 
     def update(self, dt, keys) -> None:
         self._delta = dt
+        self._update_physics()
+
+    def _update_physics(self):
         dx = -math.sin(math.radians(self.angle)) * self.thrust
         dy = -math.cos(math.radians(self.angle)) * self.thrust
         self.velocity += (dx, dy)
         log.debug('Velocity: (%f, %f)', *self.velocity)
         log.debug('Thrust on: %r', self.thrust > 0)
         self.thrust = 0
-        self.position += self.velocity * dt * self.VELOCITY_MULT
+        self.position += self.velocity * self._delta * self.VELOCITY_MULT
         log.debug('Position: (%f, %f)', *self.position)
-        self._rotate(self.angle)
+        rotated_image, rotated_rect = self._rotate(self.angle)
+        self.image = rotated_image
+        self.rect = rotated_rect
 
     def _rotate(self, angle):
         # using // reduce the vibrations
@@ -70,8 +78,9 @@ class Actor(pg.sprite.Sprite):
         rotated_image = pygame.transform.rotozoom(self._original_image, angle, 1.0)
         rotated_image_rect = rotated_image.get_rect(center=rotated_image_center)
 
-        self.image = rotated_image
-        self.rect = rotated_image_rect
+        # self.image = rotated_image
+        # self.rect = rotated_image_rect
+        return rotated_image, rotated_image_rect
 
     def accelerate(self):
         self.thrust = self.THRUST_MULT
@@ -93,6 +102,12 @@ class Actor(pg.sprite.Sprite):
 
     def inbounds(self):
         return self._screen_rect.colliderect(self.rect)
+
+    def hit(self):
+        self.health -= 1
+
+    def is_dead(self):
+        return self.health <= 0
 
     def __repr__(self):
         return f'<{self.__class__.__name__} -' \

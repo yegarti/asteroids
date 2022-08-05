@@ -1,5 +1,6 @@
 import logging
 import math
+import time
 from random import random, choice
 
 import pygame as pg
@@ -127,6 +128,8 @@ class Asteroids:
         self.delta = dt
         log.debug("Updating actors")
         self.all_actors.update(dt, keys)
+        self._detect_bullet_hits()
+        self._check_player_hit()
         log.debug("Handling game events")
         self._handle_events()
 
@@ -137,3 +140,17 @@ class Asteroids:
         self.asteroids.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
         pg.display.flip()
+
+    def _detect_bullet_hits(self):
+        for bullet in self.bullets:
+            for asteroid in self.asteroids:
+                if pg.sprite.collide_circle(bullet, asteroid):
+                    bullet.hit()
+                    asteroid.hit()
+                    log.debug('Bullet hit detected')
+
+    def _check_player_hit(self):
+        for asteroid in self.asteroids:
+            if pg.sprite.collide_circle(self.player, asteroid):
+                log.info("Player got hit by asteroid")
+                asteroid.hit()
