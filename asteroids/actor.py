@@ -18,6 +18,7 @@ class Actor(pg.sprite.Sprite):
     THRUST_MULT = .01
     HITBOX_RADIUS_RATIO = 0.9
     HIT_DURATION = .1
+    HIT_MARK_DURATION_MS = 100
 
     def __init__(self, image, scale=1.,
                  position=(0, 0), velocity=(0, 0), angle=0, health=1.):
@@ -35,6 +36,7 @@ class Actor(pg.sprite.Sprite):
         self.health = health
         self._delta = 0
         self.radius = self.image.get_width() / 2 * self.HITBOX_RADIUS_RATIO
+        self._hit_mark_cooldown = 0
         self._update_physics()
 
     def _scale(self, factor):
@@ -45,7 +47,12 @@ class Actor(pg.sprite.Sprite):
 
     def update(self, dt, keys) -> None:
         self._delta = dt
+        self._hit_mark_cooldown -= dt
         self._update_physics()
+        if self._hit_mark_cooldown > 0:
+            hit_mark_image = pg.Surface(self.image.get_size()).convert_alpha()
+            hit_mark_image.fill((255, 0, 0))
+            self.image.blit(hit_mark_image, (0, 0), special_flags=pg.BLEND_RGB_MULT)
 
     def _update_physics(self):
         dx = -math.sin(math.radians(self.angle)) * self.thrust
@@ -105,6 +112,7 @@ class Actor(pg.sprite.Sprite):
 
     def hit(self):
         self.health -= 1
+        self._hit_mark_cooldown = self.HIT_MARK_DURATION_MS
 
     def is_dead(self):
         return self.health <= 0

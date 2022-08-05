@@ -12,6 +12,10 @@ class Bullet(Actor):
         # WA to avoid spawn with angle=0
         self._rotate(self.angle)
 
+    def hit(self):
+        super().hit()
+        self.kill()
+
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
         self.ttl_ms -= dt

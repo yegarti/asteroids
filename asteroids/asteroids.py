@@ -49,6 +49,10 @@ class Asteroids:
         self.asteroids = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
 
+        # asteroid = Asteroid(angular_velocity=0.5, image='asteroid',
+        #                     position=(600, 300), velocity=(0, 0))
+        # self.asteroids.add(asteroid)
+        # self.all_actors.add(asteroid)
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
         pg.time.set_timer(AsteroidsEvent.SPAWN_ASTEROID, self.SPAWN_ASTEROID_FREQUENCY_MS)

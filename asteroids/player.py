@@ -3,7 +3,6 @@ from pygame.locals import *
 
 from asteroids.actor import Actor
 from asteroids.events import AsteroidsEvent
-from asteroids.utils import load_image
 
 
 class Player(Actor):
