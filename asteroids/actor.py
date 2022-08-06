@@ -55,10 +55,7 @@ class Actor(pg.sprite.Sprite):
             self.image.blit(hit_mark_image, (0, 0), special_flags=pg.BLEND_RGB_MULT)
 
     def _update_physics(self):
-        dx = -math.sin(math.radians(self.angle)) * self.thrust
-        dy = -math.cos(math.radians(self.angle)) * self.thrust
-        self.velocity += (dx, dy)
-        log.debug('Velocity: (%f, %f)', *self.velocity)
+        self._update_velocity()
         log.debug('Thrust on: %r', self.thrust > 0)
         self.thrust = 0
         self.position += self.velocity * self._delta * self.VELOCITY_MULT
@@ -66,6 +63,14 @@ class Actor(pg.sprite.Sprite):
         rotated_image, rotated_rect = self._rotate(self.angle)
         self.image = rotated_image
         self.rect = rotated_rect
+
+    def _update_velocity(self):
+        dx = -math.sin(math.radians(self.angle)) * self.thrust
+        dy = -math.cos(math.radians(self.angle)) * self.thrust
+        self.velocity += (dx, dy)
+        self.velocity.x = max(min(self.velocity.x, self.MAX_VELOCITY), -self.MAX_VELOCITY)
+        self.velocity.y = max(min(self.velocity.y, self.MAX_VELOCITY), -self.MAX_VELOCITY)
+        log.debug('Velocity: (%f, %f)', *self.velocity)
 
     def _rotate(self, angle):
         # using // reduce the vibrations

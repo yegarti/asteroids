@@ -8,6 +8,7 @@ from asteroids.events import AsteroidsEvent
 class Player(Actor):
     ANGULAR_SPEED = 1.5
     SHOT_COOLDOWN_MS = 150
+    MAX_VELOCITY = .3
 
     def __init__(self, image, *args, **kwargs):
         super().__init__(image, *args, **kwargs)
