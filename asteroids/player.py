@@ -24,6 +24,8 @@ class Player(Actor):
             self.decelerate()
         if keys[K_w]:
             self.accelerate()
+        if keys[K_r]:
+            self.position = (400, 500)
         if keys[K_SPACE]:
             if self._cooldown <= 0:
                 self.shot()

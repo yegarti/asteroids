@@ -55,7 +55,7 @@ class Asteroids:
         # self.all_actors.add(asteroid)
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
-        pg.time.set_timer(AsteroidsEvent.SPAWN_ASTEROID, self.SPAWN_ASTEROID_FREQUENCY_MS)
+        pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
 
     def _get_center(self):
         return (self.screen.get_width() // 2,
@@ -69,7 +69,7 @@ class Asteroids:
                 self.is_running = False
             if event.type == AsteroidsEvent.SPAWN_ASTEROID:
                 log.debug('Spawn asteroid event')
-                self._spawn_asteroid()
+                self._spawn_new_asteroid(event.size, event.position)
             if event.type == AsteroidsEvent.SHOT_BULLET:
                 log.debug('Shot bullet event')
                 self._shot()
@@ -78,41 +78,49 @@ class Asteroids:
         value = random() * (max_val - min_val) + min_val
         return value
 
-    def _spawn_asteroid(self):
+    def _spawn_new_asteroid(self, size, position):
         width, height = self.screen.get_width(), self.screen.get_height()
 
-        spawn_location = choice(['top', 'left', 'right', 'bottom'])
         x_vel = [-self.ASTEROID_MAX_VELOCITY, self.ASTEROID_MAX_VELOCITY]
         y_vel = [-self.ASTEROID_MAX_VELOCITY, self.ASTEROID_MAX_VELOCITY]
-        match spawn_location:
-            case 'top':
-                pos = [self._random_value_in_range(0, height), -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
-                y_vel[0] = self.ASTEROID_MIN_VELOCITY
-            case 'left':
-                pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, width)]
-                x_vel[0] = self.ASTEROID_MIN_VELOCITY
-            case 'right':
-                pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, height)]
-                x_vel[1] = -self.ASTEROID_MIN_VELOCITY
-            case 'bottom':
-                pos = [self._random_value_in_range(0, height), width + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
-                y_vel[1] = -self.ASTEROID_MIN_VELOCITY
-            case _:
-                raise ValueError(f'Unknown spawn location: {spawn_location}')
+        if not position:
+            spawn_location = choice(['top', 'left', 'right', 'bottom'])
+            match spawn_location:
+                case 'top':
+                    pos = [self._random_value_in_range(0, height), -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                    y_vel[0] = self.ASTEROID_MIN_VELOCITY
+                case 'left':
+                    pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, width)]
+                    x_vel[0] = self.ASTEROID_MIN_VELOCITY
+                case 'right':
+                    pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, height)]
+                    x_vel[1] = -self.ASTEROID_MIN_VELOCITY
+                case 'bottom':
+                    pos = [self._random_value_in_range(0, height), width + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                    y_vel[1] = -self.ASTEROID_MIN_VELOCITY
+                case _:
+                    raise ValueError(f'Unknown spawn location: {spawn_location}')
 
-        log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
-                  spawn_location, *pos, x_vel, y_vel)
+            log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
+                      spawn_location, *pos, x_vel, y_vel)
+        else:
+            pos = position
 
         velocity = (self._random_value_in_range(*x_vel),
                     self._random_value_in_range(*y_vel))
 
         ang_vel = self._random_value_in_range(-self.ASTEROID_MAX_ANGULAR_VELOCITY,
                                               self.ASTEROID_MAX_ANGULAR_VELOCITY)
-        asteroid = Asteroid(angular_velocity=ang_vel, image='asteroid',
+        asteroid = Asteroid(angular_velocity=ang_vel, image=f'asteroid_{size}',
+                            size=size,
                             position=pos, velocity=velocity)
         log.info("Spawned %s", asteroid)
         self.asteroids.add(asteroid)
         self.all_actors.add(asteroid)
+
+    def _create_spawn_asteroid_event(self, size, position=None):
+        return pg.event.Event(AsteroidsEvent.SPAWN_ASTEROID, size=size,
+                              position=position)
 
     def _shot(self):
         pos = self.player.position
@@ -146,14 +154,19 @@ class Asteroids:
         pg.display.flip()
 
     def _detect_bullet_hits(self):
+        bullet: Bullet
+        asteroid: Asteroid
         for bullet in self.bullets:
             for asteroid in self.asteroids:
                 if pg.sprite.collide_circle(bullet, asteroid):
                     bullet.hit()
                     asteroid.hit()
+                    if asteroid.is_dead():
+                        asteroid.explode()
                     log.debug('Bullet hit detected')
 
     def _check_player_hit(self):
+        asteroid: Asteroid
         for asteroid in self.asteroids:
             if pg.sprite.collide_circle(self.player, asteroid):
                 log.info("Player got hit by asteroid")
