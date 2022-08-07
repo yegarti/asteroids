@@ -6,11 +6,9 @@ log = logging.getLogger(__name__)
 
 
 class Bullet(Actor):
-    def __init__(self, image, *args, **kwargs):
-        super().__init__(image, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__('bullet', *args, **kwargs)
         self.ttl_ms = 500
-        # WA to avoid spawn with angle=0
-        self._rotate(self.angle)
 
     def hit(self):
         super().hit()

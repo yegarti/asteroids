@@ -8,6 +8,7 @@ import pygame.display
 from pygame.locals import *
 
 from asteroids.actor import Actor
+from asteroids.animation import Animation
 from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.events import AsteroidsEvent
@@ -40,19 +41,20 @@ class Asteroids:
         log.debug("Setting background to '%s'", self.BACKGROUND_IMAGE)
         self.background = repeat_surface(self.screen.get_size(),
                                          load_image(self.BACKGROUND_IMAGE))
-        self.player = Player(image=self.PLAYER_IMAGE,
-                             position=self._get_center(),
+        self.player = Player(position=self._get_center(),
                              scale=self.PLAYER_SCALE)
         log.info('Added player %r', self.player)
         self.all_actors = pygame.sprite.Group()
         self.all_actors.add(self.player)
         self.asteroids = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
+        self.animations = pg.sprite.Group()
 
-        # asteroid = Asteroid(angular_velocity=0.5, image='asteroid',
-        #                     position=(600, 300), velocity=(0, 0))
+        asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
+                            position=(600, 300), velocity=(0, 0), size='big')
         # self.asteroids.add(asteroid)
         # self.all_actors.add(asteroid)
+
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
         pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
@@ -128,8 +130,9 @@ class Asteroids:
         x = -math.sin(math.radians(angle))
         y = -math.cos(math.radians(angle))
         velocity = pg.math.Vector2(x, y) * self.BULLET_SPEED
-        bullet = Bullet(image='bullet',
-                        position=pos, velocity=velocity, angle=angle, scale=.8)
+        bullet = Bullet(position=pos,
+                        velocity=velocity, angle=angle, scale=.8)
+
         log.info("Shot bullet %s", bullet)
         self.bullets.add(bullet)
         self.all_actors.add(bullet)
@@ -151,6 +154,7 @@ class Asteroids:
         self.bullets.draw(self.screen)
         self.asteroids.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
+        self.animations.draw(self.screen)
         pg.display.flip()
 
     def _detect_bullet_hits(self):
@@ -160,10 +164,16 @@ class Asteroids:
             for asteroid in self.asteroids:
                 if pg.sprite.collide_circle(bullet, asteroid):
                     bullet.hit()
+                    self._spawn_bullet_animaton(bullet.position)
                     asteroid.hit()
                     if asteroid.is_dead():
                         asteroid.explode()
                     log.debug('Bullet hit detected')
+
+    def _spawn_bullet_animaton(self, position):
+        animation = Animation(['bullet_hit1', 'bullet_hit2'], position, 30, 0.8)
+        self.animations.add(animation)
+        self.all_actors.add(animation)
 
     def _check_player_hit(self):
         asteroid: Asteroid

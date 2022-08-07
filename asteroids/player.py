@@ -6,12 +6,12 @@ from asteroids.events import AsteroidsEvent
 
 
 class Player(Actor):
-    ANGULAR_SPEED = 1.5
+    ANGULAR_SPEED = 2.5
     SHOT_COOLDOWN_MS = 150
     MAX_VELOCITY = .3
 
-    def __init__(self, image, *args, **kwargs):
-        super().__init__(image, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__('player', *args, **kwargs)
         self._cooldown = 0
         self.health = 1
 
