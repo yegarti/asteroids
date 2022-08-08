@@ -1,9 +1,10 @@
 import os
-import time
+from pathlib import Path
 
 import pygame
 import logging
 from asteroids.asteroids import Asteroids
+from asteroids.config import Config
 
 logging.basicConfig(level=os.getenv('ASTEROID_LOG_LEVEL', 'ERROR'),
                     format='[%(asctime)s.%(msecs)03d] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
@@ -12,12 +13,12 @@ logging.basicConfig(level=os.getenv('ASTEROID_LOG_LEVEL', 'ERROR'),
 
 def main():
     pygame.init()
-    game = Asteroids(width=1280, height=768)
+    config = Config.parse(str(Path(__file__).parent.joinpath('config.json')))
+    game = Asteroids(config)
     while game.is_running:
         game.update()
         game.render()
     pygame.quit()
-    # time.sleep(1)
 
 
 if __name__ == '__main__':

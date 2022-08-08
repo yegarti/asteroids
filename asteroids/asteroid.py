@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 class Asteroid(Actor):
     HEALTH_TABLE = {'big': 3, 'medium': 2, 'small': 1}
     EXPLODE_PARTS = {
-        'big': [{'medium': 2, 'small':1}],
+        'big': [{'medium': 2, 'small': 1}],
         'medium': [{'small': 2}],
     }
 

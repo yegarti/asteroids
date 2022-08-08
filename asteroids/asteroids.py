@@ -11,6 +11,7 @@ from asteroids.actor import Actor
 from asteroids.animation import Animation
 from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
+from asteroids.config import Config
 from asteroids.events import AsteroidsEvent
 from asteroids.player import Player
 from asteroids.utils import load_image, repeat_surface
@@ -21,21 +22,18 @@ log = logging.getLogger(__name__)
 
 class Asteroids:
     MOVEMENT_SCALAR = 0.25
-    ANGLE = 0.1
     PLAYER_SCALE = 0.5
-    ASTEROID_MAX_VELOCITY = 0.5
-    ASTEROID_MIN_VELOCITY = 0.1
     ASTEROID_OFF_SCREEN_POS_OFFSET = 100
-    ASTEROID_MAX_ANGULAR_VELOCITY = 2.0
     BACKGROUND_IMAGE = 'purple'
     PLAYER_IMAGE = 'player'
     SPAWN_ASTEROID_FREQUENCY_MS = 1000
-    BULLET_SPEED = 1.
+    MAX_ASTEROIDS = 5
 
-    def __init__(self, width, height, title='Asteroids'):
-        pg.display.set_caption(title)
-        log.debug('Setting screen to (%d,%d)', width, height)
-        self.screen = pg.display.set_mode((width, height))
+    def __init__(self, config: Config):
+        self.config = config
+        pg.display.set_caption(self.config.title)
+        log.debug('Setting screen to (%d,%d)', self.config.width, self.config.height)
+        self.screen = pg.display.set_mode(self.config.size)
         self.is_running = True
         self._clock = pygame.time.Clock()
         log.debug("Setting background to '%s'", self.BACKGROUND_IMAGE)
@@ -81,25 +79,27 @@ class Asteroids:
         return value
 
     def _spawn_new_asteroid(self, size, position):
+        if len(self.asteroids) >= self.MAX_ASTEROIDS:
+            return
         width, height = self.screen.get_width(), self.screen.get_height()
 
-        x_vel = [-self.ASTEROID_MAX_VELOCITY, self.ASTEROID_MAX_VELOCITY]
-        y_vel = [-self.ASTEROID_MAX_VELOCITY, self.ASTEROID_MAX_VELOCITY]
+        x_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
+        y_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
         if not position:
             spawn_location = choice(['top', 'left', 'right', 'bottom'])
             match spawn_location:
                 case 'top':
                     pos = [self._random_value_in_range(0, height), -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
-                    y_vel[0] = self.ASTEROID_MIN_VELOCITY
+                    y_vel[0] = self.config.asteroid_min_velocity
                 case 'left':
                     pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, width)]
-                    x_vel[0] = self.ASTEROID_MIN_VELOCITY
+                    x_vel[0] = self.config.asteroid_min_velocity
                 case 'right':
                     pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, height)]
-                    x_vel[1] = -self.ASTEROID_MIN_VELOCITY
+                    x_vel[1] = -self.config.asteroid_min_velocity
                 case 'bottom':
                     pos = [self._random_value_in_range(0, height), width + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
-                    y_vel[1] = -self.ASTEROID_MIN_VELOCITY
+                    y_vel[1] = -self.config.asteroid_min_velocity
                 case _:
                     raise ValueError(f'Unknown spawn location: {spawn_location}')
 
@@ -111,8 +111,8 @@ class Asteroids:
         velocity = (self._random_value_in_range(*x_vel),
                     self._random_value_in_range(*y_vel))
 
-        ang_vel = self._random_value_in_range(-self.ASTEROID_MAX_ANGULAR_VELOCITY,
-                                              self.ASTEROID_MAX_ANGULAR_VELOCITY)
+        ang_vel = self._random_value_in_range(-self.config.asteroid_max_angular_velocity,
+                                              self.config.asteroid_max_angular_velocity)
         asteroid = Asteroid(angular_velocity=ang_vel, image=f'asteroid_{size}',
                             size=size,
                             position=pos, velocity=velocity)
@@ -129,7 +129,7 @@ class Asteroids:
         angle = self.player.angle
         x = -math.sin(math.radians(angle))
         y = -math.cos(math.radians(angle))
-        velocity = pg.math.Vector2(x, y) * self.BULLET_SPEED
+        velocity = pg.math.Vector2(x, y) * self.config.bullet_speed
         bullet = Bullet(position=pos,
                         velocity=velocity, angle=angle, scale=.8)
 
