@@ -21,7 +21,8 @@ class Actor(pg.sprite.Sprite):
     HIT_MARK_DURATION_MS = 100
 
     def __init__(self, image, scale=1.,
-                 position=(0, 0), velocity=(0, 0), angle=0, health=1.):
+                 position=(0, 0), velocity=(0, 0), angle=0, health=1.,
+                 spawned=True):
         super().__init__()
         self._screen_rect: pg.Rect = pg.display.get_surface().get_rect()
         self._original_image = load_image(image)
@@ -37,6 +38,7 @@ class Actor(pg.sprite.Sprite):
         self._delta = 0
         self.radius = self.image.get_width() / 2 * self.HITBOX_RADIUS_RATIO
         self._hit_mark_cooldown = 0
+        self.spawned = spawned
         self._update_physics()
 
     def _scale(self, factor):
@@ -53,6 +55,9 @@ class Actor(pg.sprite.Sprite):
             hit_mark_image = pg.Surface(self.image.get_size()).convert_alpha()
             hit_mark_image.fill((255, 0, 0))
             self.image.blit(hit_mark_image, (0, 0), special_flags=pg.BLEND_RGB_MULT)
+        if not self.inbounds() and self.spawned:
+            self.teleport()
+            pass
 
     def _update_physics(self):
         self._update_velocity()
@@ -94,6 +99,29 @@ class Actor(pg.sprite.Sprite):
         # self.rect = rotated_image_rect
         return rotated_image, rotated_image_rect
 
+    def teleport(self):
+        center = self.rect.height // 2, self.rect.width // 2
+        width, height = pg.display.get_window_size()
+        new_x = width - self.position.x + center[1]
+        new_y = height - self.position.y + center[0]
+        if self.position.y > height:
+            new_y = -center[0] + 2
+        elif self.position.y < 0:
+            new_y = height + center[0] - 2
+        if self.position.x > width:
+            new_x = -center[1] + 2
+        elif self.position.x < 0:
+            new_x = width + center[1] - 2
+        # new_y = min(max(height - self.position.y, 0), height) + center[1]
+
+        new_position = Vector2(new_x, new_y)
+        diff = new_position - self.position
+        log.debug("Teleporting out of bounds actor %s from %s to %s",
+                 id(self),
+                 self.position, new_position)
+        self.rect.move_ip(diff.x, diff.y)
+        self.position = new_position
+
     def accelerate(self):
         self.thrust = self.THRUST_MULT
 
@@ -114,6 +142,9 @@ class Actor(pg.sprite.Sprite):
 
     def inbounds(self):
         return self._screen_rect.colliderect(self.rect)
+
+    # def outbounds(self):
+    #     return not self
 
     def hit(self):
         self.health -= 1

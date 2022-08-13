@@ -1,5 +1,6 @@
 import logging
 import random
+import time
 
 import pygame
 
@@ -11,15 +12,16 @@ log = logging.getLogger(__name__)
 
 class Asteroid(Actor):
     HEALTH_TABLE = {'big': 3, 'medium': 2, 'small': 1}
+    KILL_TELEPORT_DELTA = .1
     EXPLODE_PARTS = {
         'big': [{'medium': 2, 'small': 1}],
         'medium': [{'small': 2}],
     }
 
     def __init__(self, angular_velocity, size, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs, spawned=False)
+        self._last_teleport = 0
         self.ANGULAR_SPEED = angular_velocity
-        self.spawned = False
         self.ttl_ms = 5000
         self.size = size
         self.health = self.HEALTH_TABLE[size]
@@ -31,17 +33,18 @@ class Asteroid(Actor):
         if inbounds and not self.spawned:
             self.spawned = True
 
-        if not inbounds:
-            if self.spawned:
-                log.debug("Asteroid out of bound")
-                self.kill()
-            elif self.ttl_ms < 0:
-                log.debug("Asteroid time to live passed and not spawned")
-                self.kill()
-        if self.is_dead():
+        if not self.spawned and not self.inbounds() and self.ttl_ms < 0:
+            log.info("Asteroid time to live passed and not spawned")
             self.kill()
         self.ttl_ms -= dt
         self.rotate_cw()
+
+    def teleport(self):
+        super().teleport()
+        # asteroid may be stuck in odd position keeping it teleported very fast
+        if time.time() - self._last_teleport < self.KILL_TELEPORT_DELTA:
+            self.kill()
+        self._last_teleport = time.time()
 
     def explode(self):
         self.kill()

@@ -1,4 +1,5 @@
 import pygame as pg
+import pygame.display
 from pygame.locals import *
 
 from asteroids.actor import Actor
@@ -26,7 +27,8 @@ class Player(Actor):
         if keys[K_w]:
             self.accelerate()
         if keys[K_r]:
-            self.position = (400, 500)
+            self.position = tuple(c // 2 for c in pygame.display.get_window_size())
+            self.velocity.x = self.velocity.y = 0
         if keys[K_SPACE]:
             if self._cooldown <= 0:
                 self.shot()

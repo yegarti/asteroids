@@ -49,9 +49,9 @@ class Asteroids:
         self.animations = pg.sprite.Group()
 
         asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
-                            position=(600, 300), velocity=(0, 0), size='big')
-        # self.asteroids.add(asteroid)
-        # self.all_actors.add(asteroid)
+                            position=(1338, 829), velocity=(-.2, .1), size='big')
+        self.asteroids.add(asteroid)
+        self.all_actors.add(asteroid)
 
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
@@ -79,7 +79,8 @@ class Asteroids:
         return value
 
     def _spawn_new_asteroid(self, size, position):
-        if len(self.asteroids) >= self.MAX_ASTEROIDS:
+        if len([a for a in self.asteroids if a.size == 'big']) >= self.MAX_ASTEROIDS and size == 'big':
+            log.info("Too many big asteroids on screen")
             return
         width, height = self.screen.get_width(), self.screen.get_height()
 
@@ -129,7 +130,7 @@ class Asteroids:
         angle = self.player.angle
         x = -math.sin(math.radians(angle))
         y = -math.cos(math.radians(angle))
-        velocity = pg.math.Vector2(x, y) * self.config.bullet_speed
+        velocity = pg.math.Vector2(x, y) * self.config.bullet_speed + self.player.velocity
         bullet = Bullet(position=pos,
                         velocity=velocity, angle=angle, scale=.8)
 
