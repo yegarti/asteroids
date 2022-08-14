@@ -5,6 +5,7 @@ import pygame as pg
 from pygame.math import Vector2
 import pygame.transform
 
+from asteroids.layer import Groups
 from asteroids.utils import load_image
 
 log = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class Actor(pg.sprite.Sprite):
 
     def __init__(self, image, scale=1.,
                  position=(0, 0), velocity=(0, 0), angle=0, health=1.,
-                 spawned=True):
+                 spawned=True, groups=None):
         super().__init__()
         self._screen_rect: pg.Rect = pg.display.get_surface().get_rect()
         self._original_image = load_image(image)
@@ -38,6 +39,7 @@ class Actor(pg.sprite.Sprite):
         self._delta = 0
         self.radius = self.image.get_width() / 2 * self.HITBOX_RADIUS_RATIO
         self._hit_mark_cooldown = 0
+        self.groups: Groups = groups
         self.spawned = spawned
         self._update_physics()
 

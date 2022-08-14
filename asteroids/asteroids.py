@@ -1,3 +1,4 @@
+import enum
 import logging
 import math
 import time
@@ -20,6 +21,13 @@ from asteroids.utils import load_image, repeat_surface
 log = logging.getLogger(__name__)
 
 
+class Layer(enum.IntEnum):
+    PLAYERS = 0
+    ASTEROIDS = 1
+    BULLETS = 2
+    ANIMATIONS = 3
+
+
 class Asteroids:
     MOVEMENT_SCALAR = 0.25
     PLAYER_SCALE = 0.5
@@ -39,19 +47,13 @@ class Asteroids:
         log.debug("Setting background to '%s'", self.BACKGROUND_IMAGE)
         self.background = repeat_surface(self.screen.get_size(),
                                          load_image(self.BACKGROUND_IMAGE))
+        self.layers = {
+            layer: pg.sprite.Group() for layer in sorted(Layer)
+        }
         self.player = Player(position=self._get_center(),
-                             scale=self.PLAYER_SCALE)
-        self.players = pg.sprite.Group(self.player)
+                             scale=self.PLAYER_SCALE, groups=self.layers)
         log.info('Added player %r', self.player)
-        self.asteroids = pg.sprite.Group()
-        self.bullets = pg.sprite.Group()
-        self.animations = pg.sprite.Group()
-        self.groups = [
-            self.asteroids,
-            self.bullets,
-            self.animations,
-            self.players,
-        ]
+        self.layers[Layer.PLAYERS].add(self.player)
 
         # asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
         #                     position=(1338, 829), velocity=(-.2, .1), size='big')
@@ -83,7 +85,7 @@ class Asteroids:
         return value
 
     def _spawn_new_asteroid(self, size, position):
-        if len([a for a in self.asteroids if a.size == 'big']) >= self.MAX_ASTEROIDS and size == 'big':
+        if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= self.MAX_ASTEROIDS and size == 'big':
             log.info("Too many big asteroids on screen")
             return
         width, height = self.screen.get_width(), self.screen.get_height()
@@ -121,22 +123,13 @@ class Asteroids:
         asteroid = Asteroid(angular_velocity=ang_vel, image=f'asteroid_{size}',
                             size=size,
                             position=pos, velocity=velocity)
+        self.layers[Layer.ASTEROIDS].add(asteroid)
         log.info("Spawned %s", asteroid)
-        self.asteroids.add(asteroid)
+        self.layers[Layer.ASTEROIDS].add(asteroid)
 
     def _create_spawn_asteroid_event(self, size, position=None):
         return pg.event.Event(AsteroidsEvent.SPAWN_ASTEROID, size=size,
                               position=position)
-
-    def _thrust_trail(self):
-        pos = self.player.position
-        angle = self.player.angle
-        velocity = self.player.velocity
-        bullet = Actor(position=pos,
-                        velocity=velocity, angle=angle, scale=.8)
-
-        log.info("Shot bullet %s", bullet)
-        self.bullets.add(bullet)
 
     def _shot(self):
         pos = self.player.position
@@ -148,14 +141,14 @@ class Asteroids:
                         velocity=velocity, angle=angle, scale=.8)
 
         log.info("Shot bullet %s", bullet)
-        self.bullets.add(bullet)
+        self.layers[Layer.BULLETS].add(bullet)
 
     def update(self):
         dt = self._clock.tick(60)
         keys = pg.key.get_pressed()
         self.delta = dt
         log.debug("Updating actors")
-        for group in self.groups:
+        for group in self.layers.values():
             group.update(dt, keys)
         self._detect_bullet_hits()
         self._check_player_hit()
@@ -165,34 +158,30 @@ class Asteroids:
     def render(self):
         self.screen.blit(self.background, (0, 0))
         log.debug("Drawing all actors")
-        for group in self.groups:
+        for group in self.layers.values():
             group.draw(self.screen)
-        self.bullets.draw(self.screen)
-        self.asteroids.draw(self.screen)
-        self.screen.blit(self.player.image, self.player.rect)
-        self.animations.draw(self.screen)
         pg.display.flip()
 
     def _detect_bullet_hits(self):
         bullet: Bullet
         asteroid: Asteroid
-        for bullet in self.bullets:
-            for asteroid in self.asteroids:
+        for bullet in self.layers[Layer.BULLETS]:
+            for asteroid in self.layers[Layer.ASTEROIDS]:
                 if pg.sprite.collide_circle(bullet, asteroid):
                     bullet.hit()
-                    self._spawn_bullet_animaton(bullet.position)
+                    self._spawn_bullet_animation(bullet.position)
                     asteroid.hit()
                     if asteroid.is_dead():
                         asteroid.explode()
                     log.debug('Bullet hit detected')
 
-    def _spawn_bullet_animaton(self, position):
+    def _spawn_bullet_animation(self, position):
         animation = Animation(['bullet_hit1', 'bullet_hit2'], position, 30, 0.8)
-        self.animations.add(animation)
+        self.layers[Layer.ANIMATIONS].add(animation)
 
     def _check_player_hit(self):
         asteroid: Asteroid
-        for asteroid in self.asteroids:
+        for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
                 log.info("Player got hit by asteroid")
                 asteroid.hit()

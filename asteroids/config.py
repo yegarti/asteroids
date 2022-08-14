@@ -1,13 +1,14 @@
+from __future__ import annotations
 import json
 import typing
 
 _config = None
 
 
-# def get_config():
-#     if not _config:
-#         _config = Config()
-#     return _config
+def get_config():
+    if not _config:
+        raise RuntimeError("Config has not been set")
+    return _config
 
 
 class Config(typing.NamedTuple):
@@ -30,3 +31,8 @@ class Config(typing.NamedTuple):
             raise RuntimeError("Failed to read config file '%s'", config_file)
         size = (data['width'], data['height'])
         return Config(**data, size=size)
+
+    @staticmethod
+    def set(config: Config):
+        global _config
+        _config = config

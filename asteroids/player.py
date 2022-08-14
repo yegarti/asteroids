@@ -13,6 +13,7 @@ class Player(Actor):
 
     def __init__(self, *args, **kwargs):
         super().__init__('player', *args, **kwargs)
+        # self._thrust = Actor(image='fire1')
         self._cooldown = 0
         self.health = 1
 
@@ -26,6 +27,7 @@ class Player(Actor):
             self.decelerate()
         if keys[K_w]:
             self.accelerate()
+            pg.event.post(pg.event.Event(AsteroidsEvent.THRUST_ON))
         if keys[K_r]:
             self.position = tuple(c // 2 for c in pygame.display.get_window_size())
             self.velocity.x = self.velocity.y = 0
