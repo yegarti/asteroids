@@ -15,13 +15,13 @@ class Player(Actor):
     ANGULAR_SPEED = 3.5
     SHOT_COOLDOWN_MS = 150
     MAX_VELOCITY = .3
+    FRONT_THURST_OFFSET = (0, 30)
 
     def __init__(self, *args, **kwargs):
         super().__init__('player', *args, **kwargs)
-        # self._thrust = Actor(image='fire1')
         self._cooldown = 0
         self.health = 1
-        self._thurst_accel = StaticActor('fire01')
+        self._front_thrust = StaticActor('fire01')
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
@@ -31,11 +31,11 @@ class Player(Actor):
             self.rotate_ccw()
         if keys[K_w]:
             self.accelerate()
-            self.groups[Layer.PLAYERS].add(self._thurst_accel)
-            self._thurst_accel.position = self.position
-            self._thurst_accel.rotate(self.angle, pivot=self.position + Vector2(0, 30))
+            self.groups[Layer.PLAYERS].add(self._front_thrust)
+            self._front_thrust.position = self.position
+            self._front_thrust.rotate(self.angle, pivot=self.position + self.FRONT_THURST_OFFSET)
         else:
-            self._thurst_accel.kill()
+            self._front_thrust.kill()
 
         if keys[K_r]:
             self.position = Display.get_center()
