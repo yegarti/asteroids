@@ -22,27 +22,30 @@ class StaticActor(Sprite):
     image: Surface = field(init=False, repr=False)
     rect: Rect = field(init=False, repr=False)
     _original_image: Surface = field(init=False, repr=False)
+    _position: Vector2 = field(init=False)
 
     def __post_init__(self, pos: Vector2):
         super().__init__()
         self._original_image = load_image(self.image_name)
+        self._scale(self.scale)
         self.image = self._original_image.copy()
         self.rect = self.image.get_rect()
-        self.rect.center = pos
-        self._scale(self.scale)
+        self.position = Vector2(pos)
 
     @property
     def position(self):
-        return Vector2(*self.rect.center)
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        self._position = Vector2(value)
+        self.rect.center = self._position
 
     def _scale(self, factor):
         self._original_image = pygame.transform.scale(
             self._original_image,
             (factor * self._original_image.get_width(),
              factor * self._original_image.get_height()))
-
-    def move_to(self, position: Vector2):
-        self.rect.center = position
 
     def rotate(self, angle, pivot=None):
         # using // reduce the vibrations

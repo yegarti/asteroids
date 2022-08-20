@@ -7,6 +7,7 @@ from random import random, choice
 import pygame as pg
 import pygame.display
 from pygame.locals import *
+from pygame.math import Vector2
 
 from asteroids.actor import Actor
 from asteroids.animation import Animation
@@ -14,18 +15,12 @@ from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import Config
 from asteroids.events import AsteroidsEvent
+from asteroids.layer import Layer
 from asteroids.player import Player
 from asteroids.utils import load_image, repeat_surface
 
 
 log = logging.getLogger(__name__)
-
-
-class Layer(enum.IntEnum):
-    PLAYERS = 0
-    ASTEROIDS = 1
-    BULLETS = 2
-    ANIMATIONS = 3
 
 
 class Asteroids:
@@ -50,7 +45,7 @@ class Asteroids:
         self.layers = {
             layer: pg.sprite.Group() for layer in sorted(Layer)
         }
-        self.player = Player(position=self._get_center(),
+        self.player = Player(pos=self._get_center(),
                              scale=self.PLAYER_SCALE, groups=self.layers)
         log.info('Added player %r', self.player)
         self.layers[Layer.PLAYERS].add(self.player)
@@ -86,7 +81,7 @@ class Asteroids:
 
     def _spawn_new_asteroid(self, size, position):
         if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= self.MAX_ASTEROIDS and size == 'big':
-            log.info("Too many big asteroids on screen")
+            log.debug("Too many big asteroids on screen")
             return
         width, height = self.screen.get_width(), self.screen.get_height()
 
@@ -115,16 +110,16 @@ class Asteroids:
         else:
             pos = position
 
-        velocity = (self._random_value_in_range(*x_vel),
-                    self._random_value_in_range(*y_vel))
+        velocity = Vector2(self._random_value_in_range(*x_vel),
+                           self._random_value_in_range(*y_vel))
 
         ang_vel = self._random_value_in_range(-self.config.asteroid_max_angular_velocity,
                                               self.config.asteroid_max_angular_velocity)
-        asteroid = Asteroid(angular_velocity=ang_vel, image=f'asteroid_{size}',
+        asteroid = Asteroid(angular_velocity=ang_vel, image_name=f'asteroid_{size}',
                             size=size,
-                            position=pos, velocity=velocity)
+                            pos=pos, velocity=velocity)
         self.layers[Layer.ASTEROIDS].add(asteroid)
-        log.info("Spawned %s", asteroid)
+        log.debug("Spawned %s", asteroid)
         self.layers[Layer.ASTEROIDS].add(asteroid)
 
     def _create_spawn_asteroid_event(self, size, position=None):
@@ -137,10 +132,10 @@ class Asteroids:
         x = -math.sin(math.radians(angle))
         y = -math.cos(math.radians(angle))
         velocity = pg.math.Vector2(x, y) * self.config.bullet_speed + self.player.velocity
-        bullet = Bullet(position=pos,
+        bullet = Bullet(pos=pos,
                         velocity=velocity, angle=angle, scale=.8)
 
-        log.info("Shot bullet %s", bullet)
+        log.debug("Shot bullet %s", bullet)
         self.layers[Layer.BULLETS].add(bullet)
 
     def update(self):
@@ -183,5 +178,5 @@ class Asteroids:
         asteroid: Asteroid
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
-                log.info("Player got hit by asteroid")
+                log.debug("Player got hit by asteroid")
                 asteroid.hit()

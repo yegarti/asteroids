@@ -1,17 +1,21 @@
 import logging
 import math
+from dataclasses import dataclass, field
 
 import pygame as pg
 from pygame.math import Vector2
 import pygame.transform
 
-from asteroids.layer import Groups
+from asteroids.display import Display
+from asteroids.layer import Layer
+from asteroids.static_actor import StaticActor
 from asteroids.utils import load_image
 
 log = logging.getLogger(__name__)
 
 
-class Actor(pg.sprite.Sprite):
+@dataclass(eq=False)
+class Actor(StaticActor):
     ACCELERATION = 0.01
     VELOCITY_MULT = .5
     ANGULAR_SPEED = 1
@@ -21,26 +25,19 @@ class Actor(pg.sprite.Sprite):
     HIT_DURATION = .1
     HIT_MARK_DURATION_MS = 100
 
-    def __init__(self, image, scale=1.,
-                 position=(0, 0), velocity=(0, 0), angle=0, health=1.,
-                 spawned=True, groups=None):
-        super().__init__()
-        self._screen_rect: pg.Rect = pg.display.get_surface().get_rect()
-        self._original_image = load_image(image)
-        self._scale(scale)
-        self.image: pg.Surface = self._original_image.copy()
-        self.image.get_rect()
-        self.rect = self.image.get_rect()
-        self.velocity = Vector2(velocity)
-        self.position = Vector2(position)
-        self.angle = angle
-        self.thrust = 0
-        self.health = health
-        self._delta = 0
+    health: int = 1
+    angle: float = 0
+    velocity: Vector2 = Vector2(0, 0)
+    radius: float = field(init=False)
+    thrust: int = field(init=False, default=0)
+    groups: dict[Layer, pg.sprite.Group] = None
+
+    _delta: float = field(init=False, default=0)
+    _hit_mark_cooldown: float = field(init=False, default=0)
+
+    def __post_init__(self, pos: Vector2):
+        super().__post_init__(pos)
         self.radius = self.image.get_width() / 2 * self.HITBOX_RADIUS_RATIO
-        self._hit_mark_cooldown = 0
-        self.groups: Groups = groups
-        self.spawned = spawned
         self._update_physics()
 
     def _scale(self, factor):
@@ -65,11 +62,14 @@ class Actor(pg.sprite.Sprite):
         self._update_velocity()
         log.debug('Thrust on: %r', self.thrust > 0)
         self.thrust = 0
-        self.position += self.velocity * self._delta * self.VELOCITY_MULT
+        self.rotate(self.angle)
+        pos_delta = self.velocity * self._delta * self.VELOCITY_MULT
+        self.position += pos_delta
+        log.debug(f'{self.angle=}, {self.velocity=}, {self.position=}, {pos_delta=}')
         log.debug('Position: (%f, %f)', *self.position)
-        rotated_image, rotated_rect = self._rotate(self.angle)
-        self.image = rotated_image
-        self.rect = rotated_rect
+        # rotated_image, rotated_rect = self._rotate(self.angle)
+        # self.image = rotated_image
+        # self.rect = rotated_rect
 
     def _update_velocity(self):
         dx = -math.sin(math.radians(self.angle)) * self.thrust
@@ -103,7 +103,7 @@ class Actor(pg.sprite.Sprite):
 
     def teleport(self):
         center = self.rect.height // 2, self.rect.width // 2
-        width, height = pg.display.get_window_size()
+        width, height = Display.get_size()
         new_x = width - self.position.x + center[1]
         new_y = height - self.position.y + center[0]
         if self.position.y > height:
@@ -119,8 +119,8 @@ class Actor(pg.sprite.Sprite):
         new_position = Vector2(new_x, new_y)
         diff = new_position - self.position
         log.debug("Teleporting out of bounds actor %s from %s to %s",
-                 id(self),
-                 self.position, new_position)
+                  id(self),
+                  self.position, new_position)
         self.rect.move_ip(diff.x, diff.y)
         self.position = new_position
 
@@ -142,22 +142,9 @@ class Actor(pg.sprite.Sprite):
         if self.angle <= 0:
             self.angle = 359
 
-    def inbounds(self):
-        return self._screen_rect.colliderect(self.rect)
-
-    # def outbounds(self):
-    #     return not self
-
     def hit(self):
         self.health -= 1
         self._hit_mark_cooldown = self.HIT_MARK_DURATION_MS
 
     def is_dead(self):
         return self.health <= 0
-
-    def __repr__(self):
-        return f'<{self.__class__.__name__} -' \
-               f' pos={self.position!r}' \
-               f' velocity={self.velocity!r}' \
-               f' ang_vel={self.ANGULAR_SPEED}' \
-               f'>'
