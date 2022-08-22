@@ -20,7 +20,7 @@ class Player(Actor):
     def __init__(self, *args, **kwargs):
         super().__init__('player', *args, **kwargs)
         self._cooldown = 0
-        self.health = 1
+        self.health = 100
         self._front_thrust = StaticActor('fire01')
 
     def update(self, dt, keys) -> None:

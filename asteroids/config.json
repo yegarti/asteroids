@@ -6,5 +6,7 @@
   "asteroid_min_velocity": 0.1,
   "asteroid_max_angular_velocity": 2.0,
   "player_scale": 0.5,
-  "bullet_speed": 1.0
+  "bullet_speed": 1.0,
+  "gui_font": "kenvector_future"
+
 }

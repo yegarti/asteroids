@@ -15,10 +15,10 @@ from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import Config
 from asteroids.events import AsteroidsEvent
+from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
-from asteroids.utils import load_image, repeat_surface
-
+from asteroids.utils import load_image, repeat_surface, load_font
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +33,7 @@ class Asteroids:
     MAX_ASTEROIDS = 5
 
     def __init__(self, config: Config):
+        Config.set(config)
         self.config = config
         pg.display.set_caption(self.config.title)
         log.debug('Setting screen to (%d,%d)', self.config.width, self.config.height)
@@ -42,13 +43,14 @@ class Asteroids:
         log.debug("Setting background to '%s'", self.BACKGROUND_IMAGE)
         self.background = repeat_surface(self.screen.get_size(),
                                          load_image(self.BACKGROUND_IMAGE))
-        self.layers = {
+        self.layers: dict[Layer, pg.sprite.Group] = {
             layer: pg.sprite.Group() for layer in sorted(Layer)
         }
         self.player = Player(pos=self._get_center(),
                              scale=self.PLAYER_SCALE, groups=self.layers)
         log.info('Added player %r', self.player)
         self.layers[Layer.PLAYERS].add(self.player)
+        self.gui = GUI(self.screen, health=self.player.health, lives=3)
 
         # asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
         #                     position=(1338, 829), velocity=(-.2, .1), size='big')
@@ -149,12 +151,14 @@ class Asteroids:
         self._check_player_hit()
         log.debug("Handling game events")
         self._handle_events()
+        self.gui.health = self.player.health
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
         log.debug("Drawing all actors")
         for group in self.layers.values():
             group.draw(self.screen)
+        self.gui.render()
         pg.display.flip()
 
     def _detect_bullet_hits(self):
@@ -168,6 +172,7 @@ class Asteroids:
                     asteroid.hit()
                     if asteroid.is_dead():
                         asteroid.explode()
+                        self._score(asteroid.size)
                     log.debug('Bullet hit detected')
 
     def _spawn_bullet_animation(self, position):
@@ -178,5 +183,9 @@ class Asteroids:
         asteroid: Asteroid
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
+                self.player.health -= 1
                 log.debug("Player got hit by asteroid")
                 asteroid.hit()
+
+    def _score(self, size):
+        self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]

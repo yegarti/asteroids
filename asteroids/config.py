@@ -5,7 +5,7 @@ import typing
 _config = None
 
 
-def get_config():
+def get_config() -> Config:
     if not _config:
         raise RuntimeError("Config has not been set")
     return _config
@@ -21,6 +21,7 @@ class Config(typing.NamedTuple):
     asteroid_max_angular_velocity: float
     player_scale: float
     bullet_speed: float
+    gui_font: str
 
     @staticmethod
     def parse(config_file: str):

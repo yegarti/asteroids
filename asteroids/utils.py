@@ -11,6 +11,12 @@ def load_image(image_name: str) -> pygame.Surface:
     return pygame.image.load(file).convert_alpha()
 
 
+def load_font(font_name: str, size: int) -> pygame.font.Font:
+    file = files('asteroids.resources').joinpath(f'{font_name}.ttf')
+    logging.debug('Loading %s from %s', font_name, file)
+    return pygame.font.Font(file, size)
+
+
 def repeat_surface(size: tuple[int, int], image: pygame.Surface) -> pygame.Surface:
     width, height = size
     surface = pygame.Surface(size)

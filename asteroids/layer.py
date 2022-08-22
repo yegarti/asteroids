@@ -6,5 +6,3 @@ class Layer(enum.IntEnum):
     BULLETS = 2
     PLAYERS = 3
     ANIMATIONS = 4
-
-
