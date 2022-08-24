@@ -46,11 +46,9 @@ class Asteroids:
         self.layers: dict[Layer, pg.sprite.Group] = {
             layer: pg.sprite.Group() for layer in sorted(Layer)
         }
-        self.player = Player(pos=self._get_center(),
-                             scale=self.PLAYER_SCALE, groups=self.layers)
-        log.info('Added player %r', self.player)
-        self.layers[Layer.PLAYERS].add(self.player)
-        self.gui = GUI(self.screen, health=self.player.health, lives=3)
+        self.gui = GUI(self.screen, max_health=100)
+        self.lives = 4
+        self._init_player()
 
         # asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
         #                     position=(1338, 829), velocity=(-.2, .1), size='big')
@@ -59,6 +57,20 @@ class Asteroids:
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
         pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
+
+    def _init_player(self):
+        self.lives -= 1
+
+        # make sure event trigger only once
+        if self.lives == -1:
+            pygame.event.post(pygame.event.Event(AsteroidsEvent.GAME_OVER))
+            return
+
+        self.player = Player(pos=self._get_center(),
+                             scale=self.PLAYER_SCALE, groups=self.layers)
+        log.info('Added player %r', self.player)
+        self.layers[Layer.PLAYERS].add(self.player)
+        self.gui.health = self.player.health
 
     def _get_center(self):
         return (self.screen.get_width() // 2,
@@ -76,6 +88,12 @@ class Asteroids:
             if event.type == AsteroidsEvent.SHOT_BULLET:
                 log.debug('Shot bullet event')
                 self._shot()
+            if event.type == AsteroidsEvent.SPAWN_PLAYER:
+                log.debug("Respawning player")
+                self._init_player()
+            if event.type == AsteroidsEvent.GAME_OVER:
+                log.debug("Game over!")
+                self._game_over()
 
     def _random_value_in_range(self, min_val: float, max_val: float):
         value = random() * (max_val - min_val) + min_val
@@ -152,6 +170,7 @@ class Asteroids:
         log.debug("Handling game events")
         self._handle_events()
         self.gui.health = self.player.health
+        self.gui.lives = self.lives
         if self.player.health <= 0:
             self.player.explode()
 
@@ -192,3 +211,8 @@ class Asteroids:
 
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
+
+    def _game_over(self):
+        log.info("Game over!")
+        log.info("Score: %d", self.gui.score)
+        self.is_running = False

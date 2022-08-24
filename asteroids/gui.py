@@ -11,13 +11,13 @@ from asteroids.utils import load_font, load_image
 @dataclass(eq=False)
 class GUI:
     screen: pygame.surface.Surface
-    health: int
-    lives: int
+    health: int = 0
+    max_health: int = 100
+    lives: int = 0
     score: int = 0
     _font: pygame.font.Font = field(init=False)
     _start_pos: Vector2 = field(init=False)
     _curr_pos: Vector2 = field(init=False)
-    _max_health: int = field(init=False)
 
     HEIGHT_OFFSET = 40
     WIDTH_OFFSET = 10
@@ -34,7 +34,6 @@ class GUI:
         w, h = Display.get_size()
         self._start_pos = Vector2(self.WIDTH_OFFSET, h - self.HEIGHT_OFFSET)
         self._curr_pos = Vector2(0, 0)
-        self._max_health = self.health
 
     def render(self):
         self._curr_pos = self._start_pos.copy()
@@ -51,13 +50,15 @@ class GUI:
         self.screen.blit(text, self._curr_pos)
 
     def _render_lives(self):
+        pos = self._curr_pos.copy()
         for _ in range(self.lives):
-            self._curr_pos += Vector2(35, 0)
-            self.screen.blit(self._sprite, self._curr_pos)
+            pos += Vector2(35, 0)
+            self.screen.blit(self._sprite, pos)
+        self._curr_pos += Vector2(150, 0)
 
     def _render_health(self):
         health = max(self.health, 0)
-        health_perc = health / self._max_health
+        health_perc = health / self.max_health
         bg = pygame.surface.Surface((self.HEALTH_BAR_WIDTH, self.HEALTH_BAR_HEIGHT))
         fg = pygame.surface.Surface((self.HEALTH_BAR_WIDTH * health_perc, self.HEALTH_BAR_HEIGHT))
         bg.fill('#000000')
