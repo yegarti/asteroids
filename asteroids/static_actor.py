@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass, field, InitVar
 
 import pygame
@@ -5,8 +6,6 @@ from pygame import Rect
 from pygame.sprite import Group, Sprite
 from pygame.math import Vector2
 
-# from asteroids.actor import Actor
-# from asteroids.layer import Layer
 from pygame.surface import Surface
 
 from asteroids.display import Display
@@ -21,6 +20,7 @@ class StaticActor(Sprite):
     spawned: bool = True
     image: Surface = field(init=False, repr=False)
     rect: Rect = field(init=False, repr=False)
+    alpha: float = 1.
     _original_image: Surface = field(init=False, repr=False)
     _position: Vector2 = field(init=False)
 
@@ -29,6 +29,7 @@ class StaticActor(Sprite):
         self._original_image = load_image(self.image_name)
         self._scale(self.scale)
         self.image = self._original_image.copy()
+        self.image.set_alpha(math.floor(self.alpha * 255))
         self.rect = self.image.get_rect()
         self.position = Vector2(pos)
 
@@ -69,6 +70,7 @@ class StaticActor(Sprite):
 
         self.image = rotated_image
         self.rect = rotated_image_rect
+        self.image.set_alpha(math.floor(self.alpha * 255))
 
     def inbounds(self):
         return Display.get_rect().colliderect(self.rect)

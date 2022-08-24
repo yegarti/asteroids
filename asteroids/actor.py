@@ -29,7 +29,7 @@ class Actor(StaticActor):
     angle: float = 0
     velocity: Vector2 = Vector2(0, 0)
     radius: float = field(init=False)
-    thrust: int = field(init=False, default=0)
+    thrust: float = field(init=False, default=0)
     groups: dict[Layer, pg.sprite.Group] = None
 
     _delta: float = field(init=False, default=0)
@@ -79,28 +79,6 @@ class Actor(StaticActor):
         self.velocity.y = max(min(self.velocity.y, self.MAX_VELOCITY), -self.MAX_VELOCITY)
         log.debug('Velocity: (%f, %f)', *self.velocity)
 
-    def _rotate(self, angle):
-        # using // reduce the vibrations
-        center = self._original_image.get_width() // 2, self._original_image.get_height() // 2
-        image_rect = self._original_image.get_rect(topleft=(self.position.x - center[0], self.position.y - center[1]))
-
-        offset_center_to_pivot = self.position - image_rect.center
-
-        # rotated offset from pivot to center
-        rotated_offset = offset_center_to_pivot.rotate(-angle)
-
-        # rotated image center
-        rotated_image_center = (self.position.x - rotated_offset.x,
-                                self.position.y - rotated_offset.y)
-
-        # using rotozoom to same smooth edges
-        rotated_image = pygame.transform.rotozoom(self._original_image, angle, 1.0)
-        rotated_image_rect = rotated_image.get_rect(center=rotated_image_center)
-
-        # self.image = rotated_image
-        # self.rect = rotated_image_rect
-        return rotated_image, rotated_image_rect
-
     def teleport(self):
         center = self.rect.height // 2, self.rect.width // 2
         width, height = Display.get_size()
@@ -143,7 +121,6 @@ class Actor(StaticActor):
             self.angle = 359
 
     def hit(self):
-        self.health -= 1
         self._hit_mark_cooldown = self.HIT_MARK_DURATION_MS
 
     def is_dead(self):

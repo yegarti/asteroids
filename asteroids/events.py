@@ -6,3 +6,4 @@ class AsteroidsEvent:
     SHOT_BULLET = pg.USEREVENT + 2
     BULLET_HIT = pg.USEREVENT + 3
     THRUST_ON = pg.USEREVENT + 4
+    SPAWN_PLAYER = pg.USEREVENT + 5

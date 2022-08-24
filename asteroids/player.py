@@ -22,9 +22,13 @@ class Player(Actor):
         self._cooldown = 0
         self.health = 100
         self._front_thrust = StaticActor('fire01')
+        self._dead = False
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
+        if self._dead:
+            self._die_slowly(dt)
+            return
         if keys[K_d]:
             self.rotate_cw()
         if keys[K_a]:
@@ -49,3 +53,16 @@ class Player(Actor):
 
     def shot(self):
         pg.event.post(pg.event.Event(AsteroidsEvent.SHOT_BULLET))
+
+    def _die_slowly(self, dt):
+        self.angle += 300 * dt / 1000
+        self.alpha = self.alpha * .96
+        if self.alpha < .2:
+            self.kill()
+            pygame.event.post(pygame.event.Event(AsteroidsEvent.SPAWN_PLAYER))
+
+    def explode(self):
+        self._dead = True
+        self.velocity = Vector2(0, 0)
+        self._front_thrust.kill()
+        self.thrust = 0

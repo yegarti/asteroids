@@ -152,6 +152,8 @@ class Asteroids:
         log.debug("Handling game events")
         self._handle_events()
         self.gui.health = self.player.health
+        if self.player.health <= 0:
+            self.player.explode()
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
@@ -170,6 +172,7 @@ class Asteroids:
                     bullet.hit()
                     self._spawn_bullet_animation(bullet.position)
                     asteroid.hit()
+                    asteroid.health -= 1
                     if asteroid.is_dead():
                         asteroid.explode()
                         self._score(asteroid.size)
@@ -183,9 +186,9 @@ class Asteroids:
         asteroid: Asteroid
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
-                self.player.health -= 1
                 log.debug("Player got hit by asteroid")
-                asteroid.hit()
+                self.player.health -= 1
+                self.player.hit()
 
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
