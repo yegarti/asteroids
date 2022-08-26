@@ -8,7 +8,6 @@ from asteroids.asteroids import Layer
 from asteroids.display import Display
 from asteroids.events import AsteroidsEvent
 from asteroids.static_actor import StaticActor
-from asteroids.utils import load_image
 
 
 class Player(Actor):
@@ -44,6 +43,8 @@ class Player(Actor):
         if keys[K_r]:
             self.position = Display.get_center()
             self.velocity.x = self.velocity.y = 0
+        if keys[K_g]:
+            self.explode()
         if keys[K_SPACE]:
             if self._cooldown <= 0:
                 self.shot()
@@ -59,7 +60,7 @@ class Player(Actor):
         self.alpha = self.alpha * .96
         if self.alpha < .2:
             self.kill()
-            pygame.event.post(pygame.event.Event(AsteroidsEvent.SPAWN_PLAYER))
+            pygame.event.post(pygame.event.Event(AsteroidsEvent.PLAYER_DEAD))
 
     def explode(self):
         self._dead = True

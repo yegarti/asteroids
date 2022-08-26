@@ -13,7 +13,7 @@ from asteroids.actor import Actor
 from asteroids.animation import Animation
 from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
-from asteroids.config import Config
+from asteroids.config import Config, get_config
 from asteroids.events import AsteroidsEvent
 from asteroids.gui import GUI
 from asteroids.layer import Layer
@@ -40,6 +40,7 @@ class Asteroids:
         self.screen = pg.display.set_mode(self.config.size)
         self.is_running = True
         self._clock = pygame.time.Clock()
+        self._game_over: bool = False
         log.debug("Setting background to '%s'", self.BACKGROUND_IMAGE)
         self.background = repeat_surface(self.screen.get_size(),
                                          load_image(self.BACKGROUND_IMAGE))
@@ -47,7 +48,7 @@ class Asteroids:
             layer: pg.sprite.Group() for layer in sorted(Layer)
         }
         self.gui = GUI(self.screen, max_health=100)
-        self.lives = 4
+        self.lives = 3
         self._init_player()
 
         # asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
@@ -88,12 +89,13 @@ class Asteroids:
             if event.type == AsteroidsEvent.SHOT_BULLET:
                 log.debug('Shot bullet event')
                 self._shot()
-            if event.type == AsteroidsEvent.SPAWN_PLAYER:
+            if event.type == AsteroidsEvent.PLAYER_DEAD:
                 log.debug("Respawning player")
                 self._init_player()
             if event.type == AsteroidsEvent.GAME_OVER:
-                log.debug("Game over!")
-                self._game_over()
+                log.info("Game over!")
+                log.info("Score: %d", self.gui.score)
+                self._game_over = True
 
     def _random_value_in_range(self, min_val: float, max_val: float):
         value = random() * (max_val - min_val) + min_val
@@ -180,6 +182,17 @@ class Asteroids:
         for group in self.layers.values():
             group.draw(self.screen)
         self.gui.render()
+        if self._game_over:
+            font1 = load_font(get_config().gui_font, 40)
+            font2 = load_font(get_config().gui_font, 30)
+            go1 = font1.render(f'Game Over', True, '#ffffff')
+            go2 = font2.render(f'{self.gui.score}', True, '#ffffff')
+            self.screen.blit(go1,
+                             ((self.screen.get_width() - go1.get_width()) // 2,
+                              (self.screen.get_height() - go1.get_height()) // 2 - 50))
+            self.screen.blit(go2,
+                             ((self.screen.get_width() - go2.get_width()) // 2,
+                              (self.screen.get_height() - go2.get_height()) // 2 + 50))
         pg.display.flip()
 
     def _detect_bullet_hits(self):
@@ -211,8 +224,3 @@ class Asteroids:
 
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
-
-    def _game_over(self):
-        log.info("Game over!")
-        log.info("Score: %d", self.gui.score)
-        self.is_running = False
