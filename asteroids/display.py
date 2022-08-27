@@ -14,3 +14,7 @@ class Display:
     @staticmethod
     def get_center() -> tuple:
         return tuple([a // 2 for a in pygame.display.get_window_size()])
+
+    @staticmethod
+    def get_screen() -> pygame.surface.Surface:
+        return pygame.display.get_surface()

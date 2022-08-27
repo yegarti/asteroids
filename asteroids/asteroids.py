@@ -18,6 +18,7 @@ from asteroids.events import AsteroidsEvent
 from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
+from asteroids.text import Text
 from asteroids.utils import load_image, repeat_surface, load_font
 
 log = logging.getLogger(__name__)
@@ -50,6 +51,8 @@ class Asteroids:
         self.gui = GUI(self.screen, max_health=100)
         self.lives = 3
         self._init_player()
+
+        self._text = Text(get_config().gui_font)
 
         # asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
         #                     position=(1338, 829), velocity=(-.2, .1), size='big')
@@ -183,16 +186,8 @@ class Asteroids:
             group.draw(self.screen)
         self.gui.render()
         if self._game_over:
-            font1 = load_font(get_config().gui_font, 40)
-            font2 = load_font(get_config().gui_font, 30)
-            go1 = font1.render(f'Game Over', True, '#ffffff')
-            go2 = font2.render(f'{self.gui.score}', True, '#ffffff')
-            self.screen.blit(go1,
-                             ((self.screen.get_width() - go1.get_width()) // 2,
-                              (self.screen.get_height() - go1.get_height()) // 2 - 50))
-            self.screen.blit(go2,
-                             ((self.screen.get_width() - go2.get_width()) // 2,
-                              (self.screen.get_height() - go2.get_height()) // 2 + 50))
+            self._text.render('Game Over', 40, Vector2(self._get_center()) + Vector2(0, -100))
+            self._text.render(f'{self.gui.score}', 32, Vector2(self._get_center()) + Vector2(0, -50))
         pg.display.flip()
 
     def _detect_bullet_hits(self):

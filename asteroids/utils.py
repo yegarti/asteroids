@@ -11,6 +11,7 @@ def load_image(image_name: str) -> pygame.Surface:
     return pygame.image.load(file).convert_alpha()
 
 
+@cache
 def load_font(font_name: str, size: int) -> pygame.font.Font:
     file = files('asteroids.resources').joinpath(f'{font_name}.ttf')
     logging.debug('Loading %s from %s', font_name, file)
