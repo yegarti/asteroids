@@ -12,7 +12,7 @@ from asteroids.static_actor import StaticActor
 
 class Player(Actor):
     ANGULAR_SPEED = 3.5
-    SHOT_COOLDOWN_MS = 150
+    SHOT_COOLDOWN_MS = 330
     MAX_VELOCITY = .3
     FRONT_THURST_OFFSET = (0, 30)
 

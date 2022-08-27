@@ -52,12 +52,13 @@ class Asteroids:
         self.gui = GUI(self.screen, max_health=100)
         self.lives = 1
         self._init_player()
+        self.sound_manager = SoundManager()
 
         self._text = Text(get_config().gui_font)
 
-        # asteroid = Asteroid(angular_velocity=0.5, image='asteroid_big',
-        #                     position=(1338, 829), velocity=(-.2, .1), size='big')
-        # self.asteroids.add(asteroid)
+        asteroid = Asteroid(angular_velocity=0, image_name='asteroid_big',
+                            pos=(400, 400), velocity=Vector2(0, 0), size='big')
+        self.layers[Layer.ASTEROIDS].add(asteroid)
 
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
@@ -164,7 +165,7 @@ class Asteroids:
         log.debug("Shot bullet %s", bullet)
         self.layers[Layer.BULLETS].add(bullet)
         sound_file = Sound.BULLET_FIRE2
-        SoundManager.play(sound_file)
+        self.sound_manager.play(sound_file)
 
     def update(self):
         dt = self._clock.tick(60)
@@ -179,9 +180,13 @@ class Asteroids:
         self._handle_events()
         self.gui.health = self.player.health
         self.gui.lives = self.lives
+        if self.player.thrust != 0:
+            self.sound_manager.play(Sound.THRUST, volume=20, unique=True)
+        else:
+            self.sound_manager.stop(Sound.THRUST, fadeout=True)
         if self.player.is_dead() and self.player.active:
             self.player.explode()
-            SoundManager.play(Sound.PLAYER_DIE)
+            self.sound_manager.play(Sound.PLAYER_DIE)
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
@@ -206,7 +211,10 @@ class Asteroids:
                     asteroid.health -= 1
                     if asteroid.is_dead():
                         asteroid.explode()
+                        self.sound_manager.play(Sound.EXPLOSION, volume=40)
                         self._score(asteroid.size)
+                    else:
+                        self.sound_manager.play(Sound.HIT, volume=30)
                     log.debug('Bullet hit detected')
 
     def _spawn_bullet_animation(self, position):
@@ -220,6 +228,7 @@ class Asteroids:
                 log.debug("Player got hit by asteroid")
                 self.player.health -= 1
                 self.player.hit()
+                self.sound_manager.play(Sound.IMPACT, unique=True)
 
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
