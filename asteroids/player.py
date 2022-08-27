@@ -64,6 +64,7 @@ class Player(Actor):
 
     def explode(self):
         self._dead = True
+        self.active = False
         self.velocity = Vector2(0, 0)
         self._front_thrust.kill()
         self.thrust = 0

@@ -1,21 +1,34 @@
 import logging
 from functools import cache
+from importlib.abc import Traversable
 from importlib.resources import files
+
 import pygame
+
+
+def _get_resource_path(resource, suffix='') -> Traversable:
+    suffix = f'.{suffix}' if suffix else ''
+    file = files('asteroids.resources{}'.format(suffix)).joinpath(resource)
+    logging.debug('Loading %s from %s', resource, file)
+    return file
 
 
 @cache
 def load_image(image_name: str) -> pygame.Surface:
-    file = files('asteroids.resources').joinpath(f'{image_name}.png')
-    logging.debug('Loading %s from %s', image_name, file)
-    return pygame.image.load(file).convert_alpha()
+    file = f'{image_name}.png'
+    return pygame.image.load(_get_resource_path(file, 'sprites')).convert_alpha()
 
 
 @cache
 def load_font(font_name: str, size: int) -> pygame.font.Font:
-    file = files('asteroids.resources').joinpath(f'{font_name}.ttf')
-    logging.debug('Loading %s from %s', font_name, file)
-    return pygame.font.Font(file, size)
+    file = f'{font_name}.ttf'
+    return pygame.font.Font(_get_resource_path(file), size)
+
+
+@cache
+def load_sound(sound_name: str) -> pygame.mixer.Sound:
+    file = f'{sound_name}.ogg'
+    return pygame.mixer.Sound(str(_get_resource_path(file, 'sounds')))
 
 
 def repeat_surface(size: tuple[int, int], image: pygame.Surface) -> pygame.Surface:

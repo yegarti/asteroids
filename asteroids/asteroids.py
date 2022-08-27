@@ -18,6 +18,7 @@ from asteroids.events import AsteroidsEvent
 from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
+from asteroids.sound import SoundManager, Sound
 from asteroids.text import Text
 from asteroids.utils import load_image, repeat_surface, load_font
 
@@ -49,7 +50,7 @@ class Asteroids:
             layer: pg.sprite.Group() for layer in sorted(Layer)
         }
         self.gui = GUI(self.screen, max_health=100)
-        self.lives = 3
+        self.lives = 1
         self._init_player()
 
         self._text = Text(get_config().gui_font)
@@ -162,6 +163,8 @@ class Asteroids:
 
         log.debug("Shot bullet %s", bullet)
         self.layers[Layer.BULLETS].add(bullet)
+        sound_file = Sound.BULLET_FIRE2
+        SoundManager.play(sound_file)
 
     def update(self):
         dt = self._clock.tick(60)
@@ -176,8 +179,9 @@ class Asteroids:
         self._handle_events()
         self.gui.health = self.player.health
         self.gui.lives = self.lives
-        if self.player.health <= 0:
+        if self.player.is_dead() and self.player.active:
             self.player.explode()
+            SoundManager.play(Sound.PLAYER_DIE)
 
     def render(self):
         self.screen.blit(self.background, (0, 0))

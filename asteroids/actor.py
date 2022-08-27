@@ -31,6 +31,7 @@ class Actor(StaticActor):
     radius: float = field(init=False)
     thrust: float = field(init=False, default=0)
     groups: dict[Layer, pg.sprite.Group] = None
+    active: bool = True
 
     _delta: float = field(init=False, default=0)
     _hit_mark_cooldown: float = field(init=False, default=0)
