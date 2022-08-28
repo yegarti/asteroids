@@ -2,6 +2,7 @@ import logging
 from functools import cache
 from importlib.abc import Traversable
 from importlib.resources import files
+from pathlib import Path
 
 import pygame
 
@@ -11,6 +12,10 @@ def _get_resource_path(resource, suffix='') -> Traversable:
     file = files('asteroids.resources{}'.format(suffix)).joinpath(resource)
     logging.debug('Loading %s from %s', resource, file)
     return file
+
+
+def get_sprites_path() -> Traversable:
+    return _get_resource_path(resource='', suffix='sprites')
 
 
 @cache

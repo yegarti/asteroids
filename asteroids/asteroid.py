@@ -18,13 +18,14 @@ class Asteroid(Actor):
         'medium': [{'small': 2}],
     }
 
-    def __init__(self, angular_velocity, size, *args, **kwargs):
+    def __init__(self, angular_velocity, size, color, *args, **kwargs):
         super().__init__(*args, **kwargs, spawned=False)
         self._last_teleport = 0
         self.ANGULAR_SPEED = angular_velocity
         self.ttl_ms = 5000
         self.size = size
         self.health = self.HEALTH_TABLE[size]
+        self.color = color
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
@@ -59,4 +60,4 @@ class Asteroid(Actor):
             for _ in range(amount):
                 pygame.event.post(pygame.event.Event(
                     AsteroidsEvent.SPAWN_ASTEROID,
-                    size=size, position=self.position))
+                    size=size, position=self.position, color=self.color))
