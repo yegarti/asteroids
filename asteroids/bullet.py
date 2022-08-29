@@ -1,14 +1,15 @@
 import logging
 
 from asteroids.actor import Actor
+from asteroids.config import get_config
 
 log = logging.getLogger(__name__)
 
 
 class Bullet(Actor):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, ttl=500, *args, **kwargs):
         super().__init__('bullet', *args, **kwargs)
-        self.ttl_ms = 500
+        self.ttl_ms = ttl
 
     def hit(self):
         super().hit()

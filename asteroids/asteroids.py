@@ -7,6 +7,7 @@ import pygame as pg
 import pygame.display
 from pygame.math import Vector2
 
+from asteroids.alien import Alien
 from asteroids.animation import Animation
 from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
@@ -59,6 +60,8 @@ class Asteroids:
         #                     pos=(400, 400), velocity=Vector2(0, 0), size='big')
         # self.layers[Layer.ASTEROIDS].add(asteroid)
 
+        self.alien = Alien(pos=(400, 300), groups=self.layers)
+        self.layers[Layer.ENEMIES].add(self.alien)
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
         pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
@@ -101,7 +104,7 @@ class Asteroids:
                 self._spawn_new_asteroid(event.size, event.position, event.color)
             if event.type == AsteroidsEvent.SHOT_BULLET:
                 log.debug('Shot bullet event')
-                self._shot()
+                self._shot(event.position, event.angle, event.speed, event.ttl)
             if event.type == AsteroidsEvent.PLAYER_DEAD:
                 log.debug("Respawning player")
                 self._init_player()
@@ -166,14 +169,12 @@ class Asteroids:
         return pg.event.Event(AsteroidsEvent.SPAWN_ASTEROID, size=size,
                               position=position, color=color)
 
-    def _shot(self):
-        pos = self.player.position
-        angle = self.player.angle
+    def _shot(self, position, angle, speed, ttl):
         x = -math.sin(math.radians(angle))
         y = -math.cos(math.radians(angle))
-        velocity = pg.math.Vector2(x, y) * self.config.bullet_speed + self.player.velocity
-        bullet = Bullet(pos=pos,
-                        velocity=velocity, angle=angle, scale=.8)
+        velocity = pg.math.Vector2(x, y) * speed + self.player.velocity
+        bullet = Bullet(pos=position,
+                        velocity=velocity, angle=angle, scale=.8, ttl=ttl)
 
         log.debug("Shot bullet %s", bullet)
         self.layers[Layer.BULLETS].add(bullet)
@@ -239,7 +240,7 @@ class Asteroids:
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
                 log.debug("Player got hit by asteroid")
-                self.player.health -= 1
+                # self.player.health -= 1
                 self.player.hit()
                 self.sound_manager.play(Sound.IMPACT, unique=True)
 

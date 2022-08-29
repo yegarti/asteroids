@@ -21,6 +21,9 @@ class Config(typing.NamedTuple):
     asteroid_max_angular_velocity: float
     player_scale: float
     bullet_speed: float
+    alien_bullet_ttl: float
+    bullet_ttl: float
+    alien_bullet_speed: float
     gui_font: str
 
     @staticmethod

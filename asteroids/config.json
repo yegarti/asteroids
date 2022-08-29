@@ -7,6 +7,9 @@
   "asteroid_max_angular_velocity": 2.0,
   "player_scale": 0.5,
   "bullet_speed": 1.0,
+  "alien_bullet_speed": 0.5,
+  "alien_bullet_ttl": 1000,
+  "bullet_ttl": 500,
   "gui_font": "kenvector_future"
 
 }

@@ -4,9 +4,10 @@ from pygame.locals import *
 from pygame.math import Vector2
 
 from asteroids.actor import Actor
-from asteroids.asteroids import Layer
+from asteroids.config import get_config
 from asteroids.display import Display
 from asteroids.events import AsteroidsEvent
+from asteroids.layer import Layer
 from asteroids.static_actor import StaticActor
 
 
@@ -53,7 +54,11 @@ class Player(Actor):
         self._cooldown = max(self._cooldown, 0)
 
     def shot(self):
-        pg.event.post(pg.event.Event(AsteroidsEvent.SHOT_BULLET))
+        pg.event.post(pg.event.Event(AsteroidsEvent.SHOT_BULLET,
+                                     position=self.position,
+                                     angle=self.angle,
+                                     speed=get_config().bullet_speed,
+                                     ttl=get_config().bullet_ttlw))
 
     def _die_slowly(self, dt):
         self.angle += 300 * dt / 1000
