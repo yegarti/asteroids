@@ -1,10 +1,11 @@
 import math
 
-import pygame.event
+import pygame
 
 from asteroids.actor import Actor
 from asteroids.config import get_config
-from asteroids.events import AsteroidsEvent
+from asteroids.events.game_events import GameEvents
+from asteroids.events.events_info import ShotBulletInfo
 from asteroids.layer import Layer
 from asteroids.player import Player
 
@@ -35,15 +36,18 @@ class Alien(Actor):
             angle = math.degrees(math.atan(d.x / d.y))
         else:
             angle = 180 + math.degrees(math.atan(d.x / d.y))
-        print(angle)
         shot_direction = angle
         # print(d, self.position.angle_to(d))
         # shot_direction = self.position.angle_to(d)
         if self._cooldown == 0:
             pygame.event.post(
-                pygame.event.Event(AsteroidsEvent.SHOT_BULLET,
-                                   position=self.position, angle=shot_direction,
-                                   speed=get_config().alien_bullet_speed,
-                                   ttl=get_config().alien_bullet_ttl,
-                                   ))
+                GameEvents.shot_bullet(
+                    ShotBulletInfo(
+                        self.position,
+                        get_config().alien_bullet_speed,
+                        self.velocity,
+                        shot_direction,
+                        get_config().alien_bullet_ttl,
+                    ))
+            )
             self._cooldown = self.SHOT_COOLDOWN_MS

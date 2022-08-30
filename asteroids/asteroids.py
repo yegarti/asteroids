@@ -12,7 +12,8 @@ from asteroids.animation import Animation
 from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import Config, get_config
-from asteroids.events import AsteroidsEvent
+from asteroids.events.game_events import EventId
+from asteroids.events.events_info import ShotBulletInfo
 from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
@@ -71,7 +72,7 @@ class Asteroids:
 
         # make sure event trigger only once
         if self.lives == -1:
-            pygame.event.post(pygame.event.Event(AsteroidsEvent.GAME_OVER))
+            pygame.event.post(pygame.event.Event(EventId.GAME_OVER))
             return
 
         self.player = Player(pos=self._get_center(),
@@ -99,16 +100,16 @@ class Asteroids:
                     event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 log.debug('Quit event')
                 self.is_running = False
-            if event.type == AsteroidsEvent.SPAWN_ASTEROID:
+            if event.type == EventId.SPAWN_ASTEROID:
                 log.debug('Spawn asteroid event')
                 self._spawn_new_asteroid(event.size, event.position, event.color)
-            if event.type == AsteroidsEvent.SHOT_BULLET:
+            if event.type == EventId.SHOT_BULLET:
                 log.debug('Shot bullet event')
-                self._shot(event.position, event.angle, event.speed, event.ttl)
-            if event.type == AsteroidsEvent.PLAYER_DEAD:
+                self._shot(event.info)
+            if event.type == EventId.PLAYER_DEAD:
                 log.debug("Respawning player")
                 self._init_player()
-            if event.type == AsteroidsEvent.GAME_OVER:
+            if event.type == EventId.GAME_OVER:
                 log.info("Game over!")
                 log.info("Score: %d", self.gui.score)
                 self._game_over = True
@@ -166,15 +167,18 @@ class Asteroids:
         self.layers[Layer.ASTEROIDS].add(asteroid)
 
     def _create_spawn_asteroid_event(self, size, position=None, color=None):
-        return pg.event.Event(AsteroidsEvent.SPAWN_ASTEROID, size=size,
+        return pg.event.Event(EventId.SPAWN_ASTEROID, size=size,
                               position=position, color=color)
 
-    def _shot(self, position, angle, speed, ttl):
-        x = -math.sin(math.radians(angle))
-        y = -math.cos(math.radians(angle))
-        velocity = pg.math.Vector2(x, y) * speed + self.player.velocity
-        bullet = Bullet(pos=position,
-                        velocity=velocity, angle=angle, scale=.8, ttl=ttl)
+    # def _shot(self, position, angle, speed, ttl):
+    def _shot(self, info: ShotBulletInfo):
+
+        x = -math.sin(math.radians(info.angle))
+        y = -math.cos(math.radians(info.angle))
+        velocity = pg.math.Vector2(x, y) * info.velocity + info.constant_velocity
+        bullet = Bullet(pos=info.position,
+                        velocity=velocity, angle=info.angle,
+                        scale=.8, ttl=info.duration)
 
         log.debug("Shot bullet %s", bullet)
         self.layers[Layer.BULLETS].add(bullet)

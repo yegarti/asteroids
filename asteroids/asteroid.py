@@ -5,7 +5,7 @@ import time
 import pygame
 
 from asteroids.actor import Actor
-from asteroids.events import AsteroidsEvent
+from asteroids.events.game_events import EventId
 
 log = logging.getLogger(__name__)
 
@@ -59,5 +59,5 @@ class Asteroid(Actor):
         for size, amount in parts.items():
             for _ in range(amount):
                 pygame.event.post(pygame.event.Event(
-                    AsteroidsEvent.SPAWN_ASTEROID,
+                    EventId.SPAWN_ASTEROID,
                     size=size, position=self.position, color=self.color))
