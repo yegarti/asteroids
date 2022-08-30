@@ -1,5 +1,5 @@
-from enum import Enum, IntEnum
-from typing import NamedTuple
+from enum import Enum, IntEnum, auto
+from typing import NamedTuple, Any
 
 import pygame as pg
 from pygame.event import Event
@@ -8,12 +8,14 @@ from asteroids.events.events_info import ShotBulletInfo
 
 
 class EventId(IntEnum):
-    SPAWN_ASTEROID = pg.USEREVENT + 1
-    SHOT_BULLET = pg.USEREVENT + 2
-    BULLET_HIT = pg.USEREVENT + 3
-    THRUST_ON = pg.USEREVENT + 4
-    PLAYER_DEAD = pg.USEREVENT + 5
-    GAME_OVER = pg.USEREVENT + 6
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list[Any]) -> Any:
+        return pg.USEREVENT + count
+    SPAWN_ASTEROID = auto()
+    SHOT_BULLET = auto()
+    BULLET_HIT = auto()
+    THRUST_ON = auto()
+    PLAYER_DEAD = auto()
+    GAME_OVER = auto()
 
 
 class GameEvents:
