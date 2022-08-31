@@ -40,8 +40,8 @@ class Asteroid(Actor):
         self.ttl_ms -= dt
         self.rotate_cw()
 
-    def teleport(self):
-        super().teleport()
+    def _teleport(self):
+        super()._teleport()
         # asteroid may be stuck in odd position keeping it teleported very fast
         if time.time() - self._last_teleport < self.KILL_TELEPORT_DELTA:
             self.kill()

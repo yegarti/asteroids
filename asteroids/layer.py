@@ -1,9 +1,10 @@
-import enum
+from enum import IntEnum, auto
 
 
-class Layer(enum.IntEnum):
-    ASTEROIDS = 1
-    BULLETS = 2
-    PLAYERS = 3
-    ENEMIES = 4
-    ANIMATIONS = 5
+class Layer(IntEnum):
+    ASTEROIDS = auto()
+    BULLETS = auto()
+    PLAYERS = auto()
+    ENEMY_BULLETS = auto()
+    ENEMIES = auto()
+    ANIMATIONS = auto()

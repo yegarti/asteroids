@@ -30,8 +30,9 @@ class Actor(StaticActor):
     velocity: Vector2 = field(default_factory=Vector2)
     radius: float = field(init=False)
     thrust: float = field(init=False, default=0)
-    groups: dict[Layer, pg.sprite.Group] = None
+    groups: dict[Layer, pg.sprite.Group] = field(default=None, repr=False)
     active: bool = True
+    teleport: bool = True
 
     _delta: float = field(init=False, default=0)
     _hit_mark_cooldown: float = field(init=False, default=0)
@@ -56,7 +57,10 @@ class Actor(StaticActor):
             hit_mark_image.fill((255, 0, 0))
             self.image.blit(hit_mark_image, (0, 0), special_flags=pg.BLEND_RGB_MULT)
         if not self.inbounds() and self.spawned:
-            self.teleport()
+            if self.teleport:
+                self._teleport()
+            else:
+                self.kill()
             pass
 
     def _update_physics(self):
@@ -80,7 +84,7 @@ class Actor(StaticActor):
         self.velocity.y = max(min(self.velocity.y, self.MAX_VELOCITY), -self.MAX_VELOCITY)
         log.debug('Velocity: (%f, %f)', *self.velocity)
 
-    def teleport(self):
+    def _teleport(self):
         center = self.rect.height // 2, self.rect.width // 2
         width, height = Display.get_size()
         new_x = width - self.position.x + center[1]

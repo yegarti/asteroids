@@ -8,6 +8,7 @@ from asteroids.events.game_events import GameEvents
 from asteroids.events.events_info import ShotBulletInfo
 from asteroids.layer import Layer
 from asteroids.player import Player
+from asteroids.utils import load_image, load_sound
 
 
 class Alien(Actor):
@@ -19,9 +20,13 @@ class Alien(Actor):
         super().__init__('ufoGreen', *args, **kwargs)
         self._cooldown = self.SHOT_COOLDOWN_MS
         self.health = 5
+        self.teleport = False
+        self.spawned = False
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
+        if self.inbounds() and not self.spawned:
+            self.spawned = True
         self.rotate_cw()
         self._cooldown -= dt
         self._cooldown = max(self._cooldown, 0)
@@ -39,15 +44,15 @@ class Alien(Actor):
         shot_direction = angle
         # print(d, self.position.angle_to(d))
         # shot_direction = self.position.angle_to(d)
-        if self._cooldown == 0:
+        if self._cooldown == 0 and self.spawned:
             pygame.event.post(
                 GameEvents.shot_bullet(
                     ShotBulletInfo(
-                        self.position,
-                        get_config().alien_bullet_speed,
-                        self.velocity,
-                        shot_direction,
-                        get_config().alien_bullet_ttl,
+                        position=self.position,
+                        velocity=get_config().alien_bullet_speed,
+                        constant_velocity=self.velocity,
+                        angle=shot_direction,
+                        duration=get_config().alien_bullet_ttl,
                     ))
             )
             self._cooldown = self.SHOT_COOLDOWN_MS

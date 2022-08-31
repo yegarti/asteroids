@@ -12,7 +12,7 @@ from asteroids.animation import Animation
 from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import Config, get_config
-from asteroids.events.game_events import EventId
+from asteroids.events.game_events import EventId, GameEvents
 from asteroids.events.events_info import ShotBulletInfo
 from asteroids.gui import GUI
 from asteroids.layer import Layer
@@ -32,6 +32,7 @@ class Asteroids:
     PLAYER_IMAGE = 'player'
     SPAWN_ASTEROID_FREQUENCY_MS = 1000
     MAX_ASTEROIDS = 5
+    ALIEN_SPAWN_PROB_S = .51
 
     def __init__(self, config: Config):
         Config.set(config)
@@ -53,6 +54,7 @@ class Asteroids:
         self._init_player()
         self.sound_manager = SoundManager()
         self._init_asteroid_sprites()
+        self.alien = None
 
         self._text = Text(get_config().gui_font)
 
@@ -61,11 +63,11 @@ class Asteroids:
         #                     pos=(400, 400), velocity=Vector2(0, 0), size='big')
         # self.layers[Layer.ASTEROIDS].add(asteroid)
 
-        self.alien = Alien(pos=(400, 300), groups=self.layers)
-        self.layers[Layer.ENEMIES].add(self.alien)
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
         pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
+        # pg.time.set_timer(gccpygame.event.Event(), 1000)
+        pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
 
     def _init_player(self):
         self.lives -= 1
@@ -113,37 +115,45 @@ class Asteroids:
                 log.info("Game over!")
                 log.info("Score: %d", self.gui.score)
                 self._game_over = True
+            if event.type == EventId.SPAWN_ALIEN:
+                log.info("Spawn alien event")
+                self._spawn_alien()
 
     def _random_value_in_range(self, min_val: float, max_val: float):
         value = random() * (max_val - min_val) + min_val
         return value
 
+    def _random_border_location(self, x_vel_limit, y_vel_limit):
+        width, height = self.screen.get_width(), self.screen.get_height()
+        spawn_location = choice(['top', 'left', 'right', 'bottom'])
+        xvel = list(x_vel_limit)
+        yvel = list(y_vel_limit)
+        match spawn_location:
+            case 'top':
+                pos = [self._random_value_in_range(0, height), -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                yvel[0] = self.config.asteroid_min_velocity
+            case 'left':
+                pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, width)]
+                xvel[0] = self.config.asteroid_min_velocity
+            case 'right':
+                pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, height)]
+                xvel[1] = -self.config.asteroid_min_velocity
+            case 'bottom':
+                pos = [self._random_value_in_range(0, height), width + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                yvel[1] = -self.config.asteroid_min_velocity
+            case _:
+                raise ValueError(f'Unknown spawn location: {spawn_location}')
+        return pos, xvel, yvel, spawn_location
+        pass
+
     def _spawn_new_asteroid(self, size, position, color):
         if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= self.MAX_ASTEROIDS and size == 'big':
             log.debug("Too many big asteroids on screen")
             return
-        width, height = self.screen.get_width(), self.screen.get_height()
-
-        x_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
-        y_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
+        x_vel = (-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity)
+        y_vel = (-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity)
         if not position:
-            spawn_location = choice(['top', 'left', 'right', 'bottom'])
-            match spawn_location:
-                case 'top':
-                    pos = [self._random_value_in_range(0, height), -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
-                    y_vel[0] = self.config.asteroid_min_velocity
-                case 'left':
-                    pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, width)]
-                    x_vel[0] = self.config.asteroid_min_velocity
-                case 'right':
-                    pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, height)]
-                    x_vel[1] = -self.config.asteroid_min_velocity
-                case 'bottom':
-                    pos = [self._random_value_in_range(0, height), width + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
-                    y_vel[1] = -self.config.asteroid_min_velocity
-                case _:
-                    raise ValueError(f'Unknown spawn location: {spawn_location}')
-
+            pos, x_vel, y_vel, spawn_location = self._random_border_location(x_vel, y_vel)
             log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
                       spawn_location, *pos, x_vel, y_vel)
         else:
@@ -250,3 +260,24 @@ class Asteroids:
 
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
+
+    def _spawn_alien(self):
+        if random() > self.ALIEN_SPAWN_PROB_S or self.alien in self.layers[Layer.ENEMIES]:
+            return
+        log.info("Spawning alien")
+        x_vel = (-.3, .3)
+        y_vel = (-.3, .3)
+        pos, x_vel, y_vel, spawn_loc = self._random_border_location(x_vel, y_vel)
+        match spawn_loc:
+            case 'right' | 'left':
+                y_vel = (0, 0)
+            case 'top' | 'bottom':
+                x_vel = (0, 0)
+        velocity = Vector2(self._random_value_in_range(*x_vel),
+                           self._random_value_in_range(*y_vel))
+        # pos = (600, 600)
+        self.alien = Alien(pos=pos, groups=self.layers)
+        print(self.alien, velocity)
+        self.alien.velocity = velocity
+        self.layers[Layer.ENEMIES].add(self.alien)
+

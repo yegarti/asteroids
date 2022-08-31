@@ -15,6 +15,7 @@ class EventId(IntEnum):
     BULLET_HIT = auto()
     THRUST_ON = auto()
     PLAYER_DEAD = auto()
+    SPAWN_ALIEN = auto()
     GAME_OVER = auto()
 
 
