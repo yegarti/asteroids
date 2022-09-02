@@ -13,7 +13,7 @@ from asteroids.utils import load_image, load_sound
 
 class Alien(Actor):
 
-    SHOT_COOLDOWN_MS = 1500
+    SHOT_COOLDOWN_MS = 1000
     ANGULAR_SPEED = 4.4
 
     def __init__(self, *args, **kwargs):
@@ -61,8 +61,6 @@ class Alien(Actor):
                     ))
             )
             self._cooldown = self.SHOT_COOLDOWN_MS
-        if self.health <= 0:
-            self.explode()
 
     def _die_slowly(self, dt):
         self.angle += 300 * dt / 1000

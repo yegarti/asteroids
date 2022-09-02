@@ -28,13 +28,12 @@ class Asteroids:
     MOVEMENT_SCALAR = 0.25
     PLAYER_SCALE = 0.5
     ASTEROID_OFF_SCREEN_POS_OFFSET = 100
-    ALIEN_OFF_SCREEN_POS_OFFSET = 100
     BACKGROUND_IMAGE = 'purple'
     PLAYER_IMAGE = 'player'
     SPAWN_ASTEROID_FREQUENCY_MS = 1000
     MAX_ASTEROIDS = 5
     ALIEN_SPAWN_PROB_S = .51
-    ALIEN_VELOCITY = 1
+    ALIEN_VELOCITY = .3
 
     def __init__(self, config: Config):
         Config.set(config)
@@ -260,8 +259,10 @@ class Asteroids:
             if self.alien and pg.sprite.collide_circle(bullet, self.alien):
                 self.alien.hit()
                 self.alien.health -= 1
+                if self.alien.active and self.alien.is_dead():
+                    self.alien.explode()
+                    self.gui.score += 15
                 bullet.hit()
-
 
     def _spawn_bullet_animation(self, position):
         animation = Animation(['bullet_hit1', 'bullet_hit2'], position, 30, 0.8)
