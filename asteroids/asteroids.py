@@ -34,6 +34,7 @@ class Asteroids:
     SPAWN_ASTEROID_FREQUENCY_MS = 1000
     MAX_ASTEROIDS = 5
     ALIEN_SPAWN_PROB_S = .51
+    ALIEN_VELOCITY = 1
 
     def __init__(self, config: Config):
         Config.set(config)
@@ -67,8 +68,7 @@ class Asteroids:
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
         pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
-        # pg.time.set_timer(gccpygame.event.Event(), 1000)
-        # pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
+        pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
 
     def _init_player(self):
         self.lives -= 1
@@ -126,39 +126,48 @@ class Asteroids:
         value = random() * (max_val - min_val) + min_val
         return value
 
-    def _random_border_location(self, x_vel_limit, y_vel_limit, screen_offset):
+    def _random_border_location(self, relative_area: float = 0.):
         width, height = self.screen.get_width(), self.screen.get_height()
         spawn_location = choice(['top', 'left', 'right', 'bottom'])
-        xvel = list(x_vel_limit)
-        yvel = list(y_vel_limit)
+        rand_height = self._random_value_in_range(height * relative_area, height * (1 - relative_area))
+        rand_width = self._random_value_in_range(width * relative_area, width * (1 - relative_area))
         match spawn_location:
             case 'top':
-                pos = [self._random_value_in_range(0, height), -screen_offset]
-                yvel[0] = self.config.asteroid_min_velocity
+                pos = [rand_width, -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                # yvel[0] = self.config.asteroid_min_velocity
             case 'left':
-                pos = [-screen_offset, self._random_value_in_range(0, width)]
-                xvel[0] = self.config.asteroid_min_velocity
+                pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, rand_height]
+                # xvel[0] = self.config.asteroid_min_velocity
             case 'right':
-                pos = [width + screen_offset, self._random_value_in_range(0, height)]
-                xvel[1] = -self.config.asteroid_min_velocity
+                pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, rand_height]
+                # xvel[1] = -self.config.asteroid_min_velocity
             case 'bottom':
-                pos = [self._random_value_in_range(0, height), width + screen_offset]
-                yvel[1] = -self.config.asteroid_min_velocity
+                pos = [rand_width, height + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                # yvel[1] = -self.config.asteroid_min_velocity
             case _:
                 raise ValueError(f'Unknown spawn location: {spawn_location}')
-        return pos, xvel, yvel, spawn_location
-        pass
+        return pos, spawn_location
+        # return pos, xvel, yvel, spawn_location
 
     def _spawn_new_asteroid(self, size, position, color):
         if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= self.MAX_ASTEROIDS and size == 'big':
             log.debug("Too many big asteroids on screen")
             return
-        x_vel = (-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity)
-        y_vel = (-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity)
+        x_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
+        y_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
         if not position:
-            pos, x_vel, y_vel, spawn_location = self._random_border_location(x_vel, y_vel, self.ASTEROID_OFF_SCREEN_POS_OFFSET)
+            pos, spawn_location = self._random_border_location()
+            match spawn_location:
+                case 'top':
+                    y_vel[0] = self.config.asteroid_min_velocity
+                case 'left':
+                    x_vel[0] = self.config.asteroid_min_velocity
+                case 'right':
+                    x_vel[1] = -self.config.asteroid_min_velocity
+                case 'bottom':
+                    y_vel[1] = -self.config.asteroid_min_velocity
             log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
-                      spawn_location, *pos, x_vel, y_vel)
+                      spawn_location, x_vel, y_vel, *pos)
         else:
             pos = position
 
@@ -273,18 +282,14 @@ class Asteroids:
     def _spawn_alien(self, probability=1.):
         if random() > probability or self.alien in self.layers[Layer.ENEMIES]:
             return
-        x_vel = (-.3, .3)
-        y_vel = (-.3, .3)
-        pos, x_vel, y_vel, spawn_loc = self._random_border_location(x_vel, y_vel,
-                                                                    self.ALIEN_OFF_SCREEN_POS_OFFSET)
-        match spawn_loc:
-            case 'right' | 'left':
-                y_vel = (0, 0)
-            case 'top' | 'bottom':
-                x_vel = (0, 0)
-        velocity = Vector2(self._random_value_in_range(*x_vel),
-                           self._random_value_in_range(*y_vel))
-        # pos = (600, 600)
+        velocity = Vector2(self.ALIEN_VELOCITY, self.ALIEN_VELOCITY)
+        pos, spawn_loc = self._random_border_location(relative_area=.8)
+        velocity = velocity.elementwise() * {
+            'top': Vector2(0, 1),
+            'bottom': Vector2(0, -1),
+            'left': Vector2(1, 0),
+            'right': Vector2(-1, 0),
+        }[spawn_loc]
         self.alien = Alien(velocity=velocity, scale=.7, pos=pos, groups=self.layers)
         log.info(f"Spawning alien: {self.alien}")
         self.layers[Layer.ENEMIES].add(self.alien)
