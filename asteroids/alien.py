@@ -22,9 +22,13 @@ class Alien(Actor):
         self.health = 5
         self.teleport = False
         self.spawned = False
+        self._dead = False
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
+        if self._dead:
+            self._die_slowly(dt)
+            return
         if self.inbounds() and not self.spawned:
             self.spawned = True
         self.rotate_cw()
@@ -60,5 +64,14 @@ class Alien(Actor):
         if self.health <= 0:
             self.explode()
 
+    def _die_slowly(self, dt):
+        self.angle += 300 * dt / 1000
+        self.alpha = self.alpha * .96
+        if self.alpha < .2:
+            self.kill()
+
     def explode(self):
-        self.kill()
+        self._dead = True
+        self.active = False
+        self.velocity = pygame.Vector2(0, 0)
+        self.thrust = 0
