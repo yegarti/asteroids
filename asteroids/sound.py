@@ -1,5 +1,4 @@
 import time
-from dataclasses import dataclass
 from enum import Enum
 from typing import NamedTuple
 
@@ -40,9 +39,9 @@ class SoundManager:
         if unique and sound in self._playing:
             return
         _sound = self._sounds[sound]
-        # _sound.pg_sound.play(loops)
-        self._playing[sound] = _sound.length
         _sound.pg_sound.set_volume(volume / 100)
+        _sound.pg_sound.play(loops)
+        self._playing[sound] = _sound.length
 
     def stop(self, sound: Sound, fadeout=False):
         if fadeout:

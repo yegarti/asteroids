@@ -68,7 +68,7 @@ class Asteroids:
         log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
         pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
         # pg.time.set_timer(gccpygame.event.Event(), 1000)
-        pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
+        # pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
 
     def _init_player(self):
         self.lives -= 1
@@ -118,6 +118,8 @@ class Asteroids:
                 self._game_over = True
             if event.type == EventId.SPAWN_ALIEN:
                 log.debug("Spawn alien event")
+                self._spawn_alien(probability=self.ALIEN_SPAWN_PROB_S)
+            if event.type == pg.KEYDOWN and event.key == pg.K_j:
                 self._spawn_alien()
 
     def _random_value_in_range(self, min_val: float, max_val: float):
@@ -268,10 +270,9 @@ class Asteroids:
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
 
-    def _spawn_alien(self):
-        if random() > self.ALIEN_SPAWN_PROB_S or self.alien in self.layers[Layer.ENEMIES]:
+    def _spawn_alien(self, probability=1.):
+        if random() > probability or self.alien in self.layers[Layer.ENEMIES]:
             return
-        log.info("Spawning alien")
         x_vel = (-.3, .3)
         y_vel = (-.3, .3)
         pos, x_vel, y_vel, spawn_loc = self._random_border_location(x_vel, y_vel,
@@ -285,6 +286,7 @@ class Asteroids:
                            self._random_value_in_range(*y_vel))
         # pos = (600, 600)
         self.alien = Alien(velocity=velocity, scale=.7, pos=pos, groups=self.layers)
+        log.info(f"Spawning alien: {self.alien}")
         self.layers[Layer.ENEMIES].add(self.alien)
 
     def _check_alien_hits(self):
