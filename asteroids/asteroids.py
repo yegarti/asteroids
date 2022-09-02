@@ -28,6 +28,7 @@ class Asteroids:
     MOVEMENT_SCALAR = 0.25
     PLAYER_SCALE = 0.5
     ASTEROID_OFF_SCREEN_POS_OFFSET = 100
+    ALIEN_OFF_SCREEN_POS_OFFSET = 100
     BACKGROUND_IMAGE = 'purple'
     PLAYER_IMAGE = 'player'
     SPAWN_ASTEROID_FREQUENCY_MS = 1000
@@ -116,30 +117,30 @@ class Asteroids:
                 log.info("Score: %d", self.gui.score)
                 self._game_over = True
             if event.type == EventId.SPAWN_ALIEN:
-                log.info("Spawn alien event")
+                log.debug("Spawn alien event")
                 self._spawn_alien()
 
     def _random_value_in_range(self, min_val: float, max_val: float):
         value = random() * (max_val - min_val) + min_val
         return value
 
-    def _random_border_location(self, x_vel_limit, y_vel_limit):
+    def _random_border_location(self, x_vel_limit, y_vel_limit, screen_offset):
         width, height = self.screen.get_width(), self.screen.get_height()
         spawn_location = choice(['top', 'left', 'right', 'bottom'])
         xvel = list(x_vel_limit)
         yvel = list(y_vel_limit)
         match spawn_location:
             case 'top':
-                pos = [self._random_value_in_range(0, height), -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                pos = [self._random_value_in_range(0, height), -screen_offset]
                 yvel[0] = self.config.asteroid_min_velocity
             case 'left':
-                pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, width)]
+                pos = [-screen_offset, self._random_value_in_range(0, width)]
                 xvel[0] = self.config.asteroid_min_velocity
             case 'right':
-                pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, self._random_value_in_range(0, height)]
+                pos = [width + screen_offset, self._random_value_in_range(0, height)]
                 xvel[1] = -self.config.asteroid_min_velocity
             case 'bottom':
-                pos = [self._random_value_in_range(0, height), width + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                pos = [self._random_value_in_range(0, height), width + screen_offset]
                 yvel[1] = -self.config.asteroid_min_velocity
             case _:
                 raise ValueError(f'Unknown spawn location: {spawn_location}')
@@ -153,7 +154,7 @@ class Asteroids:
         x_vel = (-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity)
         y_vel = (-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity)
         if not position:
-            pos, x_vel, y_vel, spawn_location = self._random_border_location(x_vel, y_vel)
+            pos, x_vel, y_vel, spawn_location = self._random_border_location(x_vel, y_vel, self.ASTEROID_OFF_SCREEN_POS_OFFSET)
             log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
                       spawn_location, *pos, x_vel, y_vel)
         else:
@@ -185,13 +186,13 @@ class Asteroids:
 
         x = -math.sin(math.radians(info.angle))
         y = -math.cos(math.radians(info.angle))
-        velocity = pg.math.Vector2(x, y) * info.velocity + info.constant_velocity
+        velocity = pg.math.Vector2(x, y) * info.velocity
         bullet = Bullet(pos=info.position,
                         velocity=velocity, angle=info.angle,
                         scale=.8, ttl=info.duration)
 
         log.debug("Shot bullet %s", bullet)
-        self.layers[Layer.BULLETS].add(bullet)
+        self.layers[info.layer].add(bullet)
         sound_file = Sound.BULLET_FIRE2
         self.sound_manager.play(sound_file)
 
@@ -204,6 +205,7 @@ class Asteroids:
             group.update(dt, keys)
         self._detect_bullet_hits()
         self._check_player_hit()
+        self._check_alien_hits()
         log.debug("Handling game events")
         self._handle_events()
         self.gui.health = self.player.health
@@ -244,6 +246,11 @@ class Asteroids:
                     else:
                         self.sound_manager.play(Sound.HIT, volume=30)
                     log.debug('Bullet hit detected')
+            if self.alien and pg.sprite.collide_circle(bullet, self.alien):
+                self.alien.hit()
+                self.alien.health -= 1
+                bullet.hit()
+
 
     def _spawn_bullet_animation(self, position):
         animation = Animation(['bullet_hit1', 'bullet_hit2'], position, 30, 0.8)
@@ -267,7 +274,8 @@ class Asteroids:
         log.info("Spawning alien")
         x_vel = (-.3, .3)
         y_vel = (-.3, .3)
-        pos, x_vel, y_vel, spawn_loc = self._random_border_location(x_vel, y_vel)
+        pos, x_vel, y_vel, spawn_loc = self._random_border_location(x_vel, y_vel,
+                                                                    self.ALIEN_OFF_SCREEN_POS_OFFSET)
         match spawn_loc:
             case 'right' | 'left':
                 y_vel = (0, 0)
@@ -276,8 +284,14 @@ class Asteroids:
         velocity = Vector2(self._random_value_in_range(*x_vel),
                            self._random_value_in_range(*y_vel))
         # pos = (600, 600)
-        self.alien = Alien(pos=pos, groups=self.layers)
-        print(self.alien, velocity)
-        self.alien.velocity = velocity
+        self.alien = Alien(velocity=velocity, scale=.7, pos=pos, groups=self.layers)
         self.layers[Layer.ENEMIES].add(self.alien)
 
+    def _check_alien_hits(self):
+        bullet: Bullet
+        for bullet in self.layers[Layer.ENEMY_BULLETS]:
+            if pg.sprite.collide_circle(bullet, self.player):
+                bullet.hit()
+                self._spawn_bullet_animation(bullet.position)
+                self.player.health -= 10
+                self.player.hit()

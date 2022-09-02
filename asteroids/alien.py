@@ -53,6 +53,12 @@ class Alien(Actor):
                         constant_velocity=self.velocity,
                         angle=shot_direction,
                         duration=get_config().alien_bullet_ttl,
+                        layer=Layer.ENEMY_BULLETS,
                     ))
             )
             self._cooldown = self.SHOT_COOLDOWN_MS
+        if self.health <= 0:
+            self.explode()
+
+    def explode(self):
+        self.kill()

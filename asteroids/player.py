@@ -60,7 +60,9 @@ class Player(Actor):
             angle=self.angle,
             velocity=get_config().bullet_speed,
             constant_velocity=self.velocity,
-            duration=get_config().bullet_ttl)))
+            duration=get_config().bullet_ttl,
+            layer=Layer.BULLETS
+        )))
 
     def _die_slowly(self, dt):
         self.angle += 300 * dt / 1000
