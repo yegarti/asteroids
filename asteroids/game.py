@@ -13,8 +13,7 @@ logging.basicConfig(level=os.getenv('ASTEROID_LOG_LEVEL', 'ERROR'),
 
 def main():
     pygame.init()
-    config = Config.parse(str(Path(__file__).parent.joinpath('config.json')))
-    game = Asteroids(config)
+    game = Asteroids()
     while game.is_running:
         game.update()
         game.render()

@@ -32,12 +32,11 @@ class Asteroids:
     PLAYER_IMAGE = 'player'
     SPAWN_ASTEROID_FREQUENCY_MS = 1000
     MAX_ASTEROIDS = 5
-    ALIEN_SPAWN_PROB_S = .51
-    ALIEN_VELOCITY = .3
+    ALIEN_SPAWN_PROB_PER_SECOND = .1
+    ALIEN_VELOCITY = .2
 
-    def __init__(self, config: Config):
-        Config.set(config)
-        self.config = config
+    def __init__(self):
+        self.config: Config = get_config()
         pg.display.set_caption(self.config.title)
         log.debug('Setting screen to (%d,%d)', self.config.width, self.config.height)
         self.screen = pg.display.set_mode(self.config.size)
@@ -117,7 +116,7 @@ class Asteroids:
                 self._game_over = True
             if event.type == EventId.SPAWN_ALIEN:
                 log.debug("Spawn alien event")
-                self._spawn_alien(probability=self.ALIEN_SPAWN_PROB_S)
+                self._spawn_alien(probability=self.ALIEN_SPAWN_PROB_PER_SECOND)
             if event.type == pg.KEYDOWN and event.key == pg.K_j:
                 self._spawn_alien()
 
@@ -273,7 +272,7 @@ class Asteroids:
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
                 log.debug("Player got hit by asteroid")
-                # self.player.health -= 1
+                self.player.health -= 1
                 self.player.hit()
                 self.sound_manager.play(Sound.IMPACT, unique=True)
 
