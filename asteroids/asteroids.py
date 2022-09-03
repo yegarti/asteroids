@@ -25,15 +25,8 @@ log = logging.getLogger(__name__)
 
 
 class Asteroids:
-    MOVEMENT_SCALAR = 0.25
-    PLAYER_SCALE = 0.5
-    ASTEROID_OFF_SCREEN_POS_OFFSET = 100
+    SPAWN_BORDER_OFFSET = 100
     BACKGROUND_IMAGE = 'purple'
-    PLAYER_IMAGE = 'player'
-    SPAWN_ASTEROID_FREQUENCY_MS = 1000
-    MAX_ASTEROIDS = 5
-    ALIEN_SPAWN_PROB_PER_SECOND = .1
-    ALIEN_VELOCITY = .2
 
     def __init__(self):
         self.config: Config = get_config()
@@ -64,8 +57,9 @@ class Asteroids:
         # self.layers[Layer.ASTEROIDS].add(asteroid)
 
         self.delta = 0
-        log.info("Setting spawn asteroid timer to %d ms", self.SPAWN_ASTEROID_FREQUENCY_MS)
-        pg.time.set_timer(self._create_spawn_asteroid_event('big'), self.SPAWN_ASTEROID_FREQUENCY_MS)
+        log.info("Setting spawn asteroid timer to %d ms", get_config().asteroid_spawn_frequency_ms)
+        pg.time.set_timer(self._create_spawn_asteroid_event('big'),
+                          get_config().asteroid_spawn_frequency_ms)
         pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
 
     def _init_player(self):
@@ -77,7 +71,7 @@ class Asteroids:
             return
 
         self.player = Player(pos=self._get_center(),
-                             scale=self.PLAYER_SCALE, groups=self.layers)
+                             scale=get_config().player_scale, groups=self.layers)
         log.info('Added player %r', self.player)
         self.layers[Layer.PLAYERS].add(self.player)
         self.gui.health = self.player.health
@@ -116,7 +110,7 @@ class Asteroids:
                 self._game_over = True
             if event.type == EventId.SPAWN_ALIEN:
                 log.debug("Spawn alien event")
-                self._spawn_alien(probability=self.ALIEN_SPAWN_PROB_PER_SECOND)
+                self._spawn_alien(probability=get_config().alien_spawn_frequency_per_seconds)
             if event.type == pg.KEYDOWN and event.key == pg.K_j:
                 self._spawn_alien()
 
@@ -131,16 +125,16 @@ class Asteroids:
         rand_width = self._random_value_in_range(width * relative_area, width * (1 - relative_area))
         match spawn_location:
             case 'top':
-                pos = [rand_width, -self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                pos = [rand_width, -self.SPAWN_BORDER_OFFSET]
                 # yvel[0] = self.config.asteroid_min_velocity
             case 'left':
-                pos = [-self.ASTEROID_OFF_SCREEN_POS_OFFSET, rand_height]
+                pos = [-self.SPAWN_BORDER_OFFSET, rand_height]
                 # xvel[0] = self.config.asteroid_min_velocity
             case 'right':
-                pos = [width + self.ASTEROID_OFF_SCREEN_POS_OFFSET, rand_height]
+                pos = [width + self.SPAWN_BORDER_OFFSET, rand_height]
                 # xvel[1] = -self.config.asteroid_min_velocity
             case 'bottom':
-                pos = [rand_width, height + self.ASTEROID_OFF_SCREEN_POS_OFFSET]
+                pos = [rand_width, height + self.SPAWN_BORDER_OFFSET]
                 # yvel[1] = -self.config.asteroid_min_velocity
             case _:
                 raise ValueError(f'Unknown spawn location: {spawn_location}')
@@ -148,7 +142,7 @@ class Asteroids:
         # return pos, xvel, yvel, spawn_location
 
     def _spawn_new_asteroid(self, size, position, color):
-        if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= self.MAX_ASTEROIDS and size == 'big':
+        if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= get_config().max_asteroids and size == 'big':
             log.debug("Too many big asteroids on screen")
             return
         x_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
@@ -271,7 +265,7 @@ class Asteroids:
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
                 log.debug("Player got hit by asteroid")
-                self.player.health -= 1
+                self.player.health -= get_config().player_asteroid_damage
                 self.player.hit()
                 self.sound_manager.play(get_config().impact_sound, unique=True)
 
@@ -281,7 +275,7 @@ class Asteroids:
     def _spawn_alien(self, probability=1.):
         if random() > probability or self.alien in self.layers[Layer.ENEMIES]:
             return
-        velocity = Vector2(self.ALIEN_VELOCITY, self.ALIEN_VELOCITY)
+        velocity = Vector2(get_config().alien_velocity, get_config().alien_velocity)
         pos, spawn_loc = self._random_border_location(relative_area=.8)
         velocity = velocity.elementwise() * {
             'top': Vector2(0, 1),

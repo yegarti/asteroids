@@ -28,12 +28,17 @@ class Config(typing.NamedTuple):
     asteroid_max_velocity: float = .5
     asteroid_min_velocity: float = .1
     asteroid_max_angular_velocity: float = 2.0
+    asteroid_spawn_frequency_ms: int = 1000
+    max_asteroids: int = 5
+    player_asteroid_damage: float = .5
     player_scale: float = .5
     player_bullet: _BulletConfig = _BulletConfig(speed=1.,
                                                  scale=.8,
                                                  ttl=500,
                                                  image='bullet',
                                                  sound='sfx_laser2')
+    alien_spawn_frequency_per_seconds: float = .1
+    alien_velocity: float = .2
     alien_bullet: _BulletConfig = _BulletConfig(speed=.5,
                                                 scale=1.,
                                                 ttl=1000,

@@ -10,6 +10,7 @@ from asteroids.utils import load_sound
 
 log = logging.getLogger(__name__)
 
+
 class _SoundInfo(NamedTuple):
     pg_sound: pygame.mixer.Sound
     length: float
