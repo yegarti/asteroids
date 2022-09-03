@@ -1,3 +1,4 @@
+import logging
 import time
 from enum import Enum
 from typing import NamedTuple
@@ -7,15 +8,7 @@ import pygame.mixer
 from asteroids.utils import load_sound
 
 
-class Sound(Enum):
-    BULLET_FIRE1 = 'sfx_laser1'
-    BULLET_FIRE2 = 'sfx_laser2'
-    PLAYER_DIE = 'sfx_lose'
-    IMPACT = 'impactMetal_000'
-    THRUST = 'thrusterFire_000'
-    EXPLOSION = 'explosionCrunch_000'
-    HIT = 'lowFrequency_explosion_000'
-
+log = logging.getLogger(__name__)
 
 class _SoundInfo(NamedTuple):
     pg_sound: pygame.mixer.Sound
@@ -25,15 +18,13 @@ class _SoundInfo(NamedTuple):
 class SoundManager:
     def __init__(self):
         pygame.mixer.set_num_channels(16)
-        self._sounds: dict[Sound, _SoundInfo] = {}
-        for sound in Sound:
-            s = load_sound(sound.value)
-            self._sounds[sound] = _SoundInfo(s, s.get_length())
+        self._sounds: dict[str, _SoundInfo] = {}
 
-        self._playing: dict[Sound, float] = {}
+        self._playing: dict[str, float] = {}
         self._last_update = time.time()
 
-    def play(self, sound: Sound, loop=False, volume=100, unique=False):
+    def play(self, sound: str, loop=False, volume=100, unique=False):
+        self._check_sound(sound)
         self._update()
         loops = 0 if not loop else 100
         if unique and sound in self._playing:
@@ -43,7 +34,8 @@ class SoundManager:
         _sound.pg_sound.play(loops)
         self._playing[sound] = _sound.length
 
-    def stop(self, sound: Sound, fadeout=False):
+    def stop(self, sound: str, fadeout=False):
+        self._check_sound(sound)
         if fadeout:
             self._sounds[sound].pg_sound.fadeout(500)
         else:
@@ -61,4 +53,10 @@ class SoundManager:
                 filterd_playing[sound] = remaining
         self._playing = filterd_playing
 
-
+    def _check_sound(self, sound: str):
+        if sound not in self._sounds:
+            try:
+                pg_sound = load_sound(sound)
+            except FileNotFoundError as e:
+                raise FileNotFoundError(f"Audio file '{sound}' not found") from e
+            self._sounds[sound] = _SoundInfo(pg_sound, pg_sound.get_length())

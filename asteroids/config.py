@@ -40,3 +40,8 @@ class Config(typing.NamedTuple):
                                                 image='laserRed01',
                                                 sound='laserSmall_002')
     gui_font: str = 'kenvector_future'
+    player_die_sound: str = 'sfx_lose'
+    impact_sound: str = 'impactMetal_000'
+    thrust_sound: str = 'thrusterFire_000'
+    explosion_sound: str = 'explosionCrunch_000'
+    hit_sound: str = 'lowFrequency_explosion_000'

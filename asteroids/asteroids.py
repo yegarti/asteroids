@@ -17,7 +17,7 @@ from asteroids.events.events_info import ShotBulletInfo
 from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
-from asteroids.sound import SoundManager, Sound
+from asteroids.sound import SoundManager
 from asteroids.text import Text
 from asteroids.utils import load_image, repeat_surface, get_sprites_path
 
@@ -202,8 +202,7 @@ class Asteroids:
 
         log.debug("Shot bullet %s", bullet)
         self.layers[info.layer].add(bullet)
-        sound_file = Sound.BULLET_FIRE2
-        self.sound_manager.play(sound_file)
+        self.sound_manager.play(info.sound)
 
     def update(self):
         dt = self._clock.tick(60)
@@ -220,12 +219,12 @@ class Asteroids:
         self.gui.health = self.player.health
         self.gui.lives = self.lives
         if self.player.thrust != 0:
-            self.sound_manager.play(Sound.THRUST, volume=20, unique=True)
+            self.sound_manager.play(get_config().thrust_sound, volume=20, unique=True)
         else:
-            self.sound_manager.stop(Sound.THRUST, fadeout=True)
+            self.sound_manager.stop(get_config().thrust_sound, fadeout=True)
         if self.player.is_dead() and self.player.active:
             self.player.explode()
-            self.sound_manager.play(Sound.PLAYER_DIE)
+            self.sound_manager.play(get_config().player_die_sound)
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
@@ -250,10 +249,10 @@ class Asteroids:
                     asteroid.health -= 1
                     if asteroid.is_dead():
                         asteroid.explode()
-                        self.sound_manager.play(Sound.EXPLOSION, volume=40)
+                        self.sound_manager.play(get_config().explosion_sound, volume=40)
                         self._score(asteroid.size)
                     else:
-                        self.sound_manager.play(Sound.HIT, volume=30)
+                        self.sound_manager.play(get_config().hit_sound, volume=30)
                     log.debug('Bullet hit detected')
             if self.alien and pg.sprite.collide_circle(bullet, self.alien):
                 self.alien.hit()
@@ -274,7 +273,7 @@ class Asteroids:
                 log.debug("Player got hit by asteroid")
                 self.player.health -= 1
                 self.player.hit()
-                self.sound_manager.play(Sound.IMPACT, unique=True)
+                self.sound_manager.play(get_config().impact_sound, unique=True)
 
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
