@@ -13,3 +13,6 @@ class ShotBulletInfo(NamedTuple):
     angle: float
     duration: float
     layer: Layer
+    image: str
+    sound: str
+    scale: float

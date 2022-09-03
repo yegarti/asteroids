@@ -12,6 +12,14 @@ def get_config() -> Config:
     return _config
 
 
+class _BulletConfig(typing.NamedTuple):
+    image: str
+    sound: str
+    speed: float
+    scale: float
+    ttl: float
+
+
 class Config(typing.NamedTuple):
     width: int = 1280
     height: int = 720
@@ -21,10 +29,14 @@ class Config(typing.NamedTuple):
     asteroid_min_velocity: float = .1
     asteroid_max_angular_velocity: float = 2.0
     player_scale: float = .5
-    bullet_speed: float = 1.
-    alien_bullet_ttl: float = .5
-    bullet_ttl: float = 500
-    alien_bullet_speed: float = .5
+    player_bullet: _BulletConfig = _BulletConfig(speed=1.,
+                                                 scale=.8,
+                                                 ttl=500,
+                                                 image='bullet',
+                                                 sound='sfx_laser2')
+    alien_bullet: _BulletConfig = _BulletConfig(speed=.5,
+                                                scale=1.,
+                                                ttl=1000,
+                                                image='laserRed01',
+                                                sound='laserSmall_002')
     gui_font: str = 'kenvector_future'
-    alien_bullet_image: str = 'laserRed01'
-    alien_bullet_sound: str = 'laserSmall_002'

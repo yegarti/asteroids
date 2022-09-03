@@ -58,10 +58,13 @@ class Player(Actor):
         pg.event.post(GameEvents.shot_bullet(ShotBulletInfo(
             position=self.position,
             angle=self.angle,
-            velocity=get_config().bullet_speed,
+            velocity=get_config().player_bullet.speed,
             constant_velocity=self.velocity,
-            duration=get_config().bullet_ttl,
-            layer=Layer.BULLETS
+            duration=get_config().player_bullet.ttl,
+            layer=Layer.BULLETS,
+            image=get_config().player_bullet.image,
+            sound=get_config().player_bullet.sound,
+            scale=get_config().player_bullet.scale
         )))
 
     def _die_slowly(self, dt):

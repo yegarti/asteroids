@@ -196,9 +196,9 @@ class Asteroids:
         x = -math.sin(math.radians(info.angle))
         y = -math.cos(math.radians(info.angle))
         velocity = pg.math.Vector2(x, y) * info.velocity
-        bullet = Bullet(pos=info.position,
+        bullet = Bullet(image_name=info.image, pos=info.position,
                         velocity=velocity, angle=info.angle,
-                        scale=.8, ttl=info.duration)
+                        scale=info.scale, ttl=info.duration)
 
         log.debug("Shot bullet %s", bullet)
         self.layers[info.layer].add(bullet)
