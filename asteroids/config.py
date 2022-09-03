@@ -31,6 +31,7 @@ class Config(typing.NamedTuple):
     asteroid_max_angular_velocity: float = 2.0
     asteroid_spawn_frequency_ms: int = 1000
     max_asteroids: int = 5
+    lives: int = 3
     player_asteroid_damage: float = .5
     player_scale: float = .5
     player_bullet: _BulletConfig = _BulletConfig(velocity=1.,
@@ -39,7 +40,8 @@ class Config(typing.NamedTuple):
                                                  image='bullet',
                                                  sound='sfx_laser2',
                                                  damage=1)
-    alien_spawn_frequency_per_seconds: float = .1
+    player_bullet_hit_animation: tuple[str] = ('bullet_hit1', 'bullet_hit2')
+    alien_spawn_frequency_per_seconds: float = .5
     alien_velocity: float = .2
     alien_bullet: _BulletConfig = _BulletConfig(velocity=.5,
                                                 scale=1.,
@@ -47,6 +49,9 @@ class Config(typing.NamedTuple):
                                                 image='laserRed01',
                                                 sound='laserSmall_002',
                                                 damage=10)
+    alien_bullet_hit_animation: tuple[str] = ('laserRed08', 'laserRed09')
+    alien_sound: str = 'spaceEngineLow_003'
+    alien_explosion_sound: str = 'explosionCrunch_004'
     gui_font: str = 'kenvector_future'
     player_die_sound: str = 'sfx_lose'
     impact_sound: str = 'impactMetal_000'
