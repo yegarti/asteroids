@@ -16,3 +16,4 @@ class ShotBulletInfo(NamedTuple):
     image: str
     sound: str
     scale: float
+    damage: int

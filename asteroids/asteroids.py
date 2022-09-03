@@ -192,7 +192,8 @@ class Asteroids:
         velocity = pg.math.Vector2(x, y) * info.velocity
         bullet = Bullet(image_name=info.image, pos=info.position,
                         velocity=velocity, angle=info.angle,
-                        scale=info.scale, ttl=info.duration)
+                        scale=info.scale, ttl=info.duration,
+                        damage=info.damage)
 
         log.debug("Shot bullet %s", bullet)
         self.layers[info.layer].add(bullet)
@@ -250,7 +251,7 @@ class Asteroids:
                     log.debug('Bullet hit detected')
             if self.alien and pg.sprite.collide_circle(bullet, self.alien):
                 self.alien.hit()
-                self.alien.health -= 1
+                self.alien.health -= bullet.damage
                 if self.alien.active and self.alien.is_dead():
                     self.alien.explode()
                     self.gui.score += 15
@@ -293,5 +294,5 @@ class Asteroids:
             if pg.sprite.collide_circle(bullet, self.player):
                 bullet.hit()
                 self._spawn_bullet_animation(bullet.position)
-                self.player.health -= 10
+                self.player.health -= bullet.damage
                 self.player.hit()

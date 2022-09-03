@@ -7,9 +7,10 @@ log = logging.getLogger(__name__)
 
 
 class Bullet(Actor):
-    def __init__(self, ttl=500, *args, **kwargs):
+    def __init__(self, ttl=500, damage=1, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ttl_ms = ttl
+        self.damage = damage
 
     def hit(self):
         super().hit()

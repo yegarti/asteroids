@@ -53,14 +53,10 @@ class Alien(Actor):
                 GameEvents.shot_bullet(
                     ShotBulletInfo(
                         position=self.position,
-                        velocity=get_config().alien_bullet.speed,
                         constant_velocity=self.velocity,
                         angle=shot_direction,
-                        duration=get_config().alien_bullet.ttl,
                         layer=Layer.ENEMY_BULLETS,
-                        image=get_config().alien_bullet.image,
-                        sound=get_config().alien_bullet.sound,
-                        scale=get_config().alien_bullet.scale
+                        **get_config().alien_bullet._asdict(),
                     ))
             )
             self._cooldown = self.SHOT_COOLDOWN_MS

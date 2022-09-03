@@ -15,9 +15,10 @@ def get_config() -> Config:
 class _BulletConfig(typing.NamedTuple):
     image: str
     sound: str
-    speed: float
+    velocity: float
     scale: float
-    ttl: float
+    duration: float
+    damage: int
 
 
 class Config(typing.NamedTuple):
@@ -32,18 +33,20 @@ class Config(typing.NamedTuple):
     max_asteroids: int = 5
     player_asteroid_damage: float = .5
     player_scale: float = .5
-    player_bullet: _BulletConfig = _BulletConfig(speed=1.,
+    player_bullet: _BulletConfig = _BulletConfig(velocity=1.,
                                                  scale=.8,
-                                                 ttl=500,
+                                                 duration=500,
                                                  image='bullet',
-                                                 sound='sfx_laser2')
+                                                 sound='sfx_laser2',
+                                                 damage=1)
     alien_spawn_frequency_per_seconds: float = .1
     alien_velocity: float = .2
-    alien_bullet: _BulletConfig = _BulletConfig(speed=.5,
+    alien_bullet: _BulletConfig = _BulletConfig(velocity=.5,
                                                 scale=1.,
-                                                ttl=1000,
+                                                duration=1000,
                                                 image='laserRed01',
-                                                sound='laserSmall_002')
+                                                sound='laserSmall_002',
+                                                damage=10)
     gui_font: str = 'kenvector_future'
     player_die_sound: str = 'sfx_lose'
     impact_sound: str = 'impactMetal_000'
