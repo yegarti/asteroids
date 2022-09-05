@@ -34,6 +34,8 @@ class Asteroids:
         pg.display.set_caption(self.config.title)
         log.debug('Setting screen to (%d,%d)', self.config.width, self.config.height)
         self.screen = pg.display.set_mode(self.config.size)
+        self.screen = pg.display.set_mode((0, 0), pygame.FULLSCREEN)
+
         self.is_running = True
         self._clock = pygame.time.Clock()
         self._game_over: bool = False
@@ -46,7 +48,8 @@ class Asteroids:
         self.gui = GUI(self.screen, max_health=100)
         self.lives = get_config().lives
         self._init_player()
-        self.sound_manager = SoundManager()
+        self.sound_manager = SoundManager
+        self.sound_manager.init()
         self._init_asteroid_sprites()
         self.alien = None
 
@@ -254,7 +257,7 @@ class Asteroids:
                     else:
                         self.sound_manager.play(get_config().hit_sound, volume=30)
                     log.debug('Bullet hit detected')
-            if self.alien and pg.sprite.collide_circle(bullet, self.alien):
+            if self.alien and self.alien.alive() and pg.sprite.collide_circle(bullet, self.alien):
                 self.alien.hit()
                 self.alien.health -= bullet.damage
                 if self.alien.active and self.alien.is_dead():

@@ -30,7 +30,7 @@ class Config(typing.NamedTuple):
     asteroid_min_velocity: float = .1
     asteroid_max_angular_velocity: float = 2.0
     asteroid_spawn_frequency_ms: int = 1000
-    max_asteroids: int = 5
+    max_asteroids: int = 15
     lives: int = 3
     player_asteroid_damage: float = .5
     player_scale: float = .5
@@ -41,7 +41,7 @@ class Config(typing.NamedTuple):
                                                  sound='sfx_laser2',
                                                  damage=1)
     player_bullet_hit_animation: tuple[str] = ('bullet_hit1', 'bullet_hit2')
-    alien_spawn_frequency_per_seconds: float = .5
+    alien_spawn_frequency_per_seconds: float = .05
     alien_velocity: float = .2
     alien_bullet: _BulletConfig = _BulletConfig(velocity=.5,
                                                 scale=1.,

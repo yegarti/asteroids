@@ -17,47 +17,52 @@ class _SoundInfo(NamedTuple):
 
 
 class SoundManager:
-    def __init__(self):
+    _sounds: dict[str, _SoundInfo] = {}
+    _playing: dict[str, float] = {}
+    _last_update = time.time()
+
+    @staticmethod
+    def init():
         pygame.mixer.set_num_channels(16)
-        self._sounds: dict[str, _SoundInfo] = {}
 
-        self._playing: dict[str, float] = {}
-        self._last_update = time.time()
-
-    def play(self, sound: str, loop=False, volume=100, unique=False):
-        self._check_sound(sound)
-        self._update()
+    @staticmethod
+    def play(sound: str, loop=False, volume=100, unique=False):
+        SoundManager._check_sound(sound)
+        SoundManager._update()
         loops = 0 if not loop else 100
-        if unique and sound in self._playing:
+        if unique and sound in SoundManager._playing:
             return
-        _sound = self._sounds[sound]
+        _sound = SoundManager._sounds[sound]
         _sound.pg_sound.set_volume(volume / 100)
         _sound.pg_sound.play(loops)
-        self._playing[sound] = _sound.length
+        SoundManager._playing[sound] = _sound.length
 
-    def stop(self, sound: str, fadeout=False):
-        self._check_sound(sound)
+    @staticmethod
+    def stop(sound: str, fadeout=False):
+        SoundManager._check_sound(sound)
         if fadeout:
-            self._sounds[sound].pg_sound.fadeout(500)
+            SoundManager._sounds[sound].pg_sound.fadeout(500)
         else:
-            self._sounds[sound].pg_sound.stop()
-        if sound in self._playing:
-            del self._playing[sound]
+            SoundManager._sounds[sound].pg_sound.stop()
+        if sound in SoundManager._playing:
+            del SoundManager._playing[sound]
 
-    def _update(self):
-        delta = time.time() - self._last_update
-        self._last_update = time.time()
+    @staticmethod
+    def _update():
+        delta = time.time() - SoundManager._last_update
+        SoundManager._last_update = time.time()
         filterd_playing = {}
-        for sound in self._playing:
-            self._playing[sound] -= delta
-            if (remaining := self._playing[sound]) > 0:
+        for sound in SoundManager._playing:
+            SoundManager._playing[sound] -= delta
+            if (remaining := SoundManager._playing[sound]) > 0:
                 filterd_playing[sound] = remaining
-        self._playing = filterd_playing
+        SoundManager._playing = filterd_playing
 
-    def _check_sound(self, sound: str):
-        if sound not in self._sounds:
+    @staticmethod
+    def _check_sound(sound: str):
+        if sound not in SoundManager._sounds:
             try:
                 pg_sound = load_sound(sound)
             except FileNotFoundError as e:
                 raise FileNotFoundError(f"Audio file '{sound}' not found") from e
-            self._sounds[sound] = _SoundInfo(pg_sound, pg_sound.get_length())
+            SoundManager._sounds[sound] = _SoundInfo(pg_sound, pg_sound.get_length())
