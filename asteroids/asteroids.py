@@ -197,7 +197,8 @@ class Asteroids:
         bullet = Bullet(image_name=info.image, pos=info.position,
                         velocity=velocity, angle=info.angle,
                         scale=info.scale, ttl=info.duration,
-                        damage=info.damage)
+                        damage=info.damage,
+                        groups=self.layers)
 
         log.debug("Shot bullet %s", bullet)
         self.layers[info.layer].add(bullet)
@@ -210,10 +211,7 @@ class Asteroids:
         log.debug("Updating actors")
         for group in self.layers.values():
             group.update(dt, keys)
-        # self.dispatch_events()
-        self._detect_bullet_hits()
-        self._check_player_hit()
-        self._check_alien_hits()
+        self.check_actions()
         log.debug("Handling game events")
         self._handle_events()
         self.gui.health = self.player.health
@@ -241,7 +239,12 @@ class Asteroids:
             self._text.render(f'{self.gui.score}', 32, Vector2(self._get_center()) + Vector2(0, -50))
         pg.display.flip()
 
-    def _detect_bullet_hits(self):
+    def check_actions(self):
+        self.check_player_bullets_hit()
+        self.check_asteroid_hit_player()
+        self.check_asteroid_hit_alien()
+
+    def check_player_bullets_hit(self):
         bullet: Bullet
         asteroid: Asteroid
         for bullet in self.layers[Layer.BULLETS]:
@@ -257,18 +260,11 @@ class Asteroids:
                 if not self.alien.active and self.alien.is_dead():
                     self.gui.score += 15
 
-    def _spawn_bullet_animation(self, position: tuple, sprites: Sequence[str]):
-        animation = Animation(sprites, position, 30, 0.8)
-        self.layers[Layer.ANIMATIONS].add(animation)
-
-    def _check_player_hit(self):
+    def check_asteroid_hit_player(self):
         asteroid: Asteroid
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
                 self.player.on_asteroid_hit()
-
-    def _score(self, size):
-        self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
 
     def _spawn_alien(self, probability=1.):
         if random() > probability or self.alien in self.layers[Layer.ENEMIES]:
@@ -285,7 +281,7 @@ class Asteroids:
         log.info(f"Spawning alien: {self.alien}")
         self.layers[Layer.ENEMIES].add(self.alien)
 
-    def _check_alien_hits(self):
+    def check_asteroid_hit_alien(self):
         bullet: Bullet
         for bullet in self.layers[Layer.ENEMY_BULLETS]:
             if pg.sprite.collide_circle(bullet, self.player):
