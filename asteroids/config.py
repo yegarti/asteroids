@@ -1,6 +1,5 @@
 from __future__ import annotations
-import json
-import typing
+from typing import NamedTuple
 
 _config = None
 
@@ -12,16 +11,17 @@ def get_config() -> Config:
     return _config
 
 
-class _BulletConfig(typing.NamedTuple):
+class _BulletConfig(NamedTuple):
     image: str
     sound: str
     velocity: float
     scale: float
     duration: float
     damage: int
+    hit_images: tuple[str, ...]
 
 
-class Config(typing.NamedTuple):
+class Config(NamedTuple):
     width: int = 1280
     height: int = 720
     size: tuple[int, int] = (1280, 720)
@@ -39,8 +39,8 @@ class Config(typing.NamedTuple):
                                                  duration=500,
                                                  image='bullet',
                                                  sound='sfx_laser2',
-                                                 damage=1)
-    player_bullet_hit_animation: tuple[str] = ('bullet_hit1', 'bullet_hit2')
+                                                 damage=1,
+                                                 hit_images=('bullet_hit1', 'bullet_hit2'))
     alien_spawn_frequency_per_seconds: float = .05
     alien_velocity: float = .2
     alien_bullet: _BulletConfig = _BulletConfig(velocity=.5,
@@ -48,8 +48,8 @@ class Config(typing.NamedTuple):
                                                 duration=1000,
                                                 image='laserRed01',
                                                 sound='laserSmall_002',
-                                                damage=10)
-    alien_bullet_hit_animation: tuple[str] = ('laserRed08', 'laserRed09')
+                                                damage=10,
+                                                hit_images=('laserRed08', 'laserRed09'))
     alien_sound: str = 'spaceEngineLow_003'
     alien_explosion_sound: str = 'explosionCrunch_004'
     gui_font: str = 'kenvector_future'

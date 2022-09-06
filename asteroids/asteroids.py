@@ -198,7 +198,8 @@ class Asteroids:
                         velocity=velocity, angle=info.angle,
                         scale=info.scale, ttl=info.duration,
                         damage=info.damage,
-                        groups=self.layers)
+                        groups=self.layers,
+                        hit_animation_images=info.hit_images)
 
         log.debug("Shot bullet %s", bullet)
         self.layers[info.layer].add(bullet)
