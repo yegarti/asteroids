@@ -3,11 +3,13 @@ import math
 import pygame
 
 from asteroids.actor import Actor
+from asteroids.bullet import Bullet
 from asteroids.config import get_config
 from asteroids.events.game_events import GameEvents
 from asteroids.events.events_info import ShotBulletInfo
 from asteroids.layer import Layer
 from asteroids.player import Player
+from asteroids.sound import SoundManager
 from asteroids.utils import load_image, load_sound
 
 
@@ -72,3 +74,10 @@ class Alien(Actor):
         self.active = False
         self.velocity = pygame.Vector2(0, 0)
         self.thrust = 0
+
+    def on_bullet_hit(self, bullet: Bullet):
+        self.hit()
+        self.health -= bullet.damage
+        if self.active and self.is_dead():
+            self.explode()
+            SoundManager.play(get_config().alien_explosion_sound)

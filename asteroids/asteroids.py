@@ -210,6 +210,7 @@ class Asteroids:
         log.debug("Updating actors")
         for group in self.layers.values():
             group.update(dt, keys)
+        # self.dispatch_events()
         self._detect_bullet_hits()
         self._check_player_hit()
         self._check_alien_hits()
@@ -246,25 +247,15 @@ class Asteroids:
         for bullet in self.layers[Layer.BULLETS]:
             for asteroid in self.layers[Layer.ASTEROIDS]:
                 if pg.sprite.collide_circle(bullet, asteroid):
-                    bullet.hit()
-                    self._spawn_bullet_animation(bullet.position, get_config().player_bullet_hit_animation)
-                    asteroid.hit()
-                    asteroid.health -= 1
-                    if asteroid.is_dead():
-                        asteroid.explode()
-                        self.sound_manager.play(get_config().explosion_sound, volume=40)
-                        self._score(asteroid.size)
-                    else:
-                        self.sound_manager.play(get_config().hit_sound, volume=30)
-                    log.debug('Bullet hit detected')
+                    bullet.on_hit()
+                    asteroid.on_bullet_hit(bullet)
+                    if not asteroid.alive():
+                        self.gui.score += asteroid.score
             if self.alien and self.alien.alive() and pg.sprite.collide_circle(bullet, self.alien):
-                self.alien.hit()
-                self.alien.health -= bullet.damage
-                if self.alien.active and self.alien.is_dead():
-                    self.alien.explode()
-                    self.sound_manager.play(get_config().alien_explosion_sound)
+                bullet.on_hit()
+                self.alien.on_bullet_hit(bullet)
+                if not self.alien.active and self.alien.is_dead():
                     self.gui.score += 15
-                bullet.hit()
 
     def _spawn_bullet_animation(self, position: tuple, sprites: Sequence[str]):
         animation = Animation(sprites, position, 30, 0.8)
@@ -274,10 +265,7 @@ class Asteroids:
         asteroid: Asteroid
         for asteroid in self.layers[Layer.ASTEROIDS]:
             if pg.sprite.collide_circle(self.player, asteroid):
-                log.debug("Player got hit by asteroid")
-                self.player.health -= get_config().player_asteroid_damage
-                self.player.hit()
-                self.sound_manager.play(get_config().impact_sound, unique=True)
+                self.player.on_asteroid_hit()
 
     def _score(self, size):
         self.gui.score += {'small': 1, 'medium': 2, 'big': 3}[size]
@@ -301,7 +289,5 @@ class Asteroids:
         bullet: Bullet
         for bullet in self.layers[Layer.ENEMY_BULLETS]:
             if pg.sprite.collide_circle(bullet, self.player):
-                bullet.hit()
-                self._spawn_bullet_animation(bullet.position, get_config().alien_bullet_hit_animation)
-                self.player.health -= bullet.damage
-                self.player.hit()
+                bullet.on_hit()
+                self.player.on_bullet_hit(bullet)

@@ -1,7 +1,9 @@
 import logging
 
 from asteroids.actor import Actor
+from asteroids.animation import Animation
 from asteroids.config import get_config
+from asteroids.layer import Layer
 
 log = logging.getLogger(__name__)
 
@@ -22,3 +24,9 @@ class Bullet(Actor):
         if self.ttl_ms <= 0:
             log.debug("Killing bullet")
             self.kill()
+
+    def on_hit(self):
+        self.hit()
+        animation = Animation(get_config().player_bullet_hit_animation,
+                              self.position, 30, 0.8)
+        self.groups[Layer.ANIMATIONS].add(animation)

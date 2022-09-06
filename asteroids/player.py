@@ -4,11 +4,14 @@ from pygame.locals import *
 from pygame.math import Vector2
 
 from asteroids.actor import Actor
+from asteroids.asteroid import Asteroid
+from asteroids.bullet import Bullet
 from asteroids.config import get_config
 from asteroids.display import Display
 from asteroids.events.events_info import ShotBulletInfo
 from asteroids.events.game_events import EventId, GameEvents
 from asteroids.layer import Layer
+from asteroids.sound import SoundManager
 from asteroids.static_actor import StaticActor
 
 
@@ -76,3 +79,12 @@ class Player(Actor):
         self.velocity = Vector2(0, 0)
         self._front_thrust.kill()
         self.thrust = 0
+
+    def on_asteroid_hit(self):
+        self.health -= get_config().player_asteroid_damage
+        self.hit()
+        SoundManager.play(get_config().impact_sound, unique=True)
+
+    def on_bullet_hit(self, bullet: Bullet):
+        self.health -= bullet.damage
+        self.hit()

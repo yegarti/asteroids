@@ -5,7 +5,10 @@ import time
 import pygame
 
 from asteroids.actor import Actor
+from asteroids.bullet import Bullet
+from asteroids.config import get_config
 from asteroids.events.game_events import EventId
+from asteroids.sound import SoundManager
 
 log = logging.getLogger(__name__)
 
@@ -17,6 +20,9 @@ class Asteroid(Actor):
         'big': [{'medium': 2, 'small': 1}],
         'medium': [{'small': 2}],
     }
+    SCORE = {
+        'small': 1, 'medium': 2, 'big': 3
+    }
 
     def __init__(self, angular_velocity, size, color, *args, **kwargs):
         super().__init__(*args, **kwargs, spawned=False)
@@ -26,6 +32,7 @@ class Asteroid(Actor):
         self.size = size
         self.health = self.HEALTH_TABLE[size]
         self.color = color
+        self.score: int = self.SCORE[self.size]
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)
@@ -61,3 +68,12 @@ class Asteroid(Actor):
                 pygame.event.post(pygame.event.Event(
                     EventId.SPAWN_ASTEROID,
                     size=size, position=self.position, color=self.color))
+
+    def on_bullet_hit(self, bullet: Bullet):
+        self.hit()
+        self.health -= bullet.damage
+        if self.is_dead():
+            self.explode()
+            SoundManager.play(get_config().explosion_sound, volume=40)
+        else:
+            SoundManager.play(get_config().hit_sound, volume=30)
