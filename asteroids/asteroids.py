@@ -14,7 +14,7 @@ from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import Config, get_config
 from asteroids.events.game_events import EventId, GameEvents
-from asteroids.events.events_info import ShotBulletInfo
+from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo
 from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
@@ -33,7 +33,6 @@ class Asteroids:
         self.config: Config = get_config()
         pg.display.set_caption(self.config.title)
         log.debug('Setting screen to (%d,%d)', self.config.width, self.config.height)
-        self.screen = pg.display.set_mode(self.config.size)
         self.screen = pg.display.set_mode((0, 0), pygame.FULLSCREEN)
 
         self.is_running = True
@@ -62,8 +61,13 @@ class Asteroids:
 
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", get_config().asteroid_spawn_frequency_ms)
-        pg.time.set_timer(self._create_spawn_asteroid_event('big'),
-                          get_config().asteroid_spawn_frequency_ms)
+        pg.time.set_timer(
+            GameEvents.spawn_asteroid(SpawnAsteroidInfo(
+                size='big',
+                color=None,
+                position=None,
+            )), get_config().asteroid_spawn_frequency_ms)
+
         pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
 
     def _init_player(self):
@@ -101,7 +105,7 @@ class Asteroids:
                 self.is_running = False
             if event.type == EventId.SPAWN_ASTEROID:
                 log.debug('Spawn asteroid event')
-                self._spawn_new_asteroid(event.size, event.position, event.color)
+                self._spawn_new_asteroid(event.info)
             if event.type == EventId.SHOT_BULLET:
                 log.debug('Shot bullet event')
                 self._shot(event.info)
@@ -145,13 +149,13 @@ class Asteroids:
         return pos, spawn_location
         # return pos, xvel, yvel, spawn_location
 
-    def _spawn_new_asteroid(self, size, position, color):
-        if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= get_config().max_asteroids and size == 'big':
+    def _spawn_new_asteroid(self, info: SpawnAsteroidInfo):
+        if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= get_config().max_asteroids and info.size == 'big':
             log.debug("Too many big asteroids on screen")
             return
         x_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
         y_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
-        if not position:
+        if not info.position:
             pos, spawn_location = self._random_border_location()
             match spawn_location:
                 case 'top':
@@ -165,7 +169,7 @@ class Asteroids:
             log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
                       spawn_location, x_vel, y_vel, *pos)
         else:
-            pos = position
+            pos = info.position
 
         velocity = Vector2(self._random_value_in_range(*x_vel),
                            self._random_value_in_range(*y_vel))
@@ -173,22 +177,18 @@ class Asteroids:
         ang_vel = self._random_value_in_range(-self.config.asteroid_max_angular_velocity,
                                               self.config.asteroid_max_angular_velocity)
 
-        if not color:
+        color = info.color
+        if not info.color:
             color = choice(list(self.asteroids_sprites.keys()))
 
         asteroid = Asteroid(angular_velocity=ang_vel,
-                            image_name=choice(self.asteroids_sprites[color][size]),
-                            size=size, color=color,
+                            image_name=choice(self.asteroids_sprites[color][info.size]),
+                            size=info.size, color=color,
                             pos=pos, velocity=velocity)
         self.layers[Layer.ASTEROIDS].add(asteroid)
         log.debug("Spawned %s", asteroid)
         self.layers[Layer.ASTEROIDS].add(asteroid)
 
-    def _create_spawn_asteroid_event(self, size, position=None, color=None):
-        return pg.event.Event(EventId.SPAWN_ASTEROID, size=size,
-                              position=position, color=color)
-
-    # def _shot(self, position, angle, speed, ttl):
     def _shot(self, info: ShotBulletInfo):
 
         x = -math.sin(math.radians(info.angle))

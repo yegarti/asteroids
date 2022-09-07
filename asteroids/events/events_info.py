@@ -1,4 +1,4 @@
-from typing import NamedTuple, Sequence
+from typing import NamedTuple, Sequence, Optional
 
 import pygame
 from pygame import Vector2
@@ -18,3 +18,9 @@ class ShotBulletInfo(NamedTuple):
     scale: float
     damage: int
     hit_images: Sequence[str]
+
+
+class SpawnAsteroidInfo(NamedTuple):
+    position: Optional[Vector2]
+    size: str
+    color: Optional[str]

@@ -7,7 +7,8 @@ import pygame
 from asteroids.actor import Actor
 from asteroids.bullet import Bullet
 from asteroids.config import get_config
-from asteroids.events.game_events import EventId
+from asteroids.events.events_info import SpawnAsteroidInfo
+from asteroids.events.game_events import EventId, GameEvents
 from asteroids.sound import SoundManager
 
 log = logging.getLogger(__name__)
@@ -65,9 +66,13 @@ class Asteroid(Actor):
         log.info('Exploding %s asteroid to %s', self.size, parts)
         for size, amount in parts.items():
             for _ in range(amount):
-                pygame.event.post(pygame.event.Event(
-                    EventId.SPAWN_ASTEROID,
-                    size=size, position=self.position, color=self.color))
+                pygame.event.post(
+                    GameEvents.spawn_asteroid(SpawnAsteroidInfo(
+                        position=self.position,
+                        size=size,
+                        color=self.color
+                    ))
+                )
 
     def on_bullet_hit(self, bullet: Bullet):
         self.hit()

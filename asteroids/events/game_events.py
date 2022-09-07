@@ -4,7 +4,7 @@ from typing import NamedTuple, Any
 import pygame as pg
 from pygame.event import Event
 
-from asteroids.events.events_info import ShotBulletInfo
+from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo
 
 
 class EventId(IntEnum):
@@ -28,3 +28,10 @@ class GameEvents:
     @staticmethod
     def shot_bullet(info: ShotBulletInfo) -> Event:
         return GameEvents._gen_event(EventId.SHOT_BULLET, info)
+
+    @staticmethod
+    def spawn_asteroid(info: SpawnAsteroidInfo) -> Event:
+        return GameEvents._gen_event(EventId.SPAWN_ASTEROID, info)
+    # @staticmethod
+    # def spawn_alien(info: SpawnAsteroidInfo) -> Event:
+    #     return GameEvents._gen_event(EventId.SPAWN_ALIEN, info)
