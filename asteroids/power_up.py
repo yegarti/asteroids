@@ -13,7 +13,7 @@ from asteroids.static_actor import StaticActor
 
 @dataclass(eq=False)
 class PowerUp(StaticActor):
-    duration: float = 0
+    duration_s: float = 0
 
     def __post_init__(self, pos: Vector2):
         super().__post_init__(pos)

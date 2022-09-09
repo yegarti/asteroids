@@ -130,7 +130,7 @@ class Asteroids:
                 pygame.event.post(
                     GameEvents.spawn_powerup(
                         SpawnPowerUpInfo(
-                            duration=0,
+                            duration=5,
                             image=get_config().power_up_health,
                             scale=1.0,
                             power_up='health',
@@ -258,7 +258,7 @@ class Asteroids:
         self.check_player_bullets_hit()
         self.check_asteroid_hit_player()
         self.check_asteroid_hit_alien()
-        self.check_powerup_collected()
+        self.check_powerups()
 
     def check_player_bullets_hit(self):
         bullet: Bullet
@@ -313,14 +313,17 @@ class Asteroids:
             power(image_name=info.image,
                   scale=info.scale,
                   pos=pos,
-                  duration=info.duration,
+                  duration_s=info.duration,
                   groups=self.layers,
                   )
         )
 
-    def check_powerup_collected(self):
+    def check_powerups(self):
         for powerup in self.layers[Layer.POWER_UP]:
             powerup: PowerUp
+            powerup.duration_s -= self.delta / 1000
             if self.player.alive() and pg.sprite.collide_circle(powerup, self.player):
                 powerup.activate()
+                powerup.kill()
+            if powerup.duration_s < 0:
                 powerup.kill()
