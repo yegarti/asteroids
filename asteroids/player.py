@@ -4,7 +4,6 @@ from pygame.locals import *
 from pygame.math import Vector2
 
 from asteroids.actor import Actor
-from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import get_config
 from asteroids.display import Display
@@ -24,9 +23,17 @@ class Player(Actor):
     def __init__(self, *args, **kwargs):
         super().__init__('player', *args, **kwargs)
         self._cooldown = 0
-        self.health = 100
+        self._health = 100
         self._front_thrust = StaticActor('fire01')
         self._dead = False
+
+    @property
+    def health(self):
+        return self._health
+
+    @health.setter
+    def health(self, value):
+        self._health = min(value, 100)
 
     def update(self, dt, keys) -> None:
         super().update(dt, keys)

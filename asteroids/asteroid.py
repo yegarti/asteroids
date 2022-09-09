@@ -8,7 +8,7 @@ from asteroids.actor import Actor
 from asteroids.bullet import Bullet
 from asteroids.config import get_config
 from asteroids.events.events_info import SpawnAsteroidInfo
-from asteroids.events.game_events import EventId, GameEvents
+from asteroids.events.game_events import GameEvents
 from asteroids.sound import SoundManager
 
 log = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
-from typing import NamedTuple, Sequence, Optional
+from typing import NamedTuple, Sequence, Optional, Type
 
 import pygame
 from pygame import Vector2
@@ -28,3 +28,11 @@ class SpawnAsteroidInfo(NamedTuple):
 
 class SpawnAlienInfo(NamedTuple):
     probability: float
+
+
+class SpawnPowerUpInfo(NamedTuple):
+    position: Vector2
+    duration: float
+    image: str
+    scale: float
+    power_up: str

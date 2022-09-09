@@ -2,7 +2,7 @@ import logging
 import math
 import re
 from random import random, choice
-from typing import Sequence
+from typing import Sequence, Type
 
 import pygame as pg
 import pygame.display
@@ -14,10 +14,11 @@ from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import Config, get_config
 from asteroids.events.game_events import EventId, GameEvents
-from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo, SpawnAlienInfo
+from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo, SpawnAlienInfo, SpawnPowerUpInfo
 from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
+from asteroids.power_up import Health, PowerUp
 from asteroids.sound import SoundManager
 from asteroids.text import Text
 from asteroids.utils import load_image, repeat_surface, get_sprites_path
@@ -123,6 +124,18 @@ class Asteroids:
                 self._spawn_alien(event.info)
             if event.type == pg.KEYDOWN and event.key == pg.K_j:
                 self._spawn_alien(SpawnAlienInfo(probability=1.))
+            if event.type == EventId.SPAWN_POWERUP:
+                self._spawn_powerup(event.info)
+            if event.type == pg.KEYDOWN and event.key == pg.K_o:
+                pygame.event.post(
+                    GameEvents.spawn_powerup(
+                        SpawnPowerUpInfo(
+                            position=Vector2(random() * 800, random() * 800),
+                            duration=0,
+                            image=get_config().power_up_health,
+                            scale=1.0,
+                            power_up='health',
+                        )))
 
     def _random_value_in_range(self, min_val: float, max_val: float):
         value = random() * (max_val - min_val) + min_val
@@ -246,6 +259,7 @@ class Asteroids:
         self.check_player_bullets_hit()
         self.check_asteroid_hit_player()
         self.check_asteroid_hit_alien()
+        self.check_powerup_collected()
 
     def check_player_bullets_hit(self):
         bullet: Bullet
@@ -290,3 +304,21 @@ class Asteroids:
             if pg.sprite.collide_circle(bullet, self.player):
                 bullet.on_hit()
                 self.player.on_bullet_hit(bullet)
+
+    def _spawn_powerup(self, info: SpawnPowerUpInfo):
+        power = PowerUp.new(info.power_up)
+        self.layers[Layer.POWER_UP].add(
+            power(image_name=info.image,
+                  scale=info.scale,
+                  pos=info.position,
+                  duration=info.duration,
+                  groups=self.layers,
+                  )
+        )
+
+    def check_powerup_collected(self):
+        for powerup in self.layers[Layer.POWER_UP]:
+            powerup: PowerUp
+            if self.player.alive() and pg.sprite.collide_circle(powerup, self.player):
+                powerup.activate()
+                powerup.kill()

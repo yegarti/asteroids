@@ -28,7 +28,6 @@ class Actor(StaticActor):
     angle: float = 0
     velocity: Vector2 = field(default_factory=Vector2)
     thrust: float = field(init=False, default=0)
-    groups: dict[Layer, pg.sprite.Group] = field(default=None, repr=False)
     active: bool = True
     teleport: bool = True
 

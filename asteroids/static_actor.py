@@ -9,6 +9,7 @@ from pygame.math import Vector2
 from pygame.surface import Surface
 
 from asteroids.display import Display
+from asteroids.layer import Layer
 from asteroids.utils import load_image
 
 
@@ -22,6 +23,7 @@ class StaticActor(Sprite):
     rect: Rect = field(init=False, repr=False)
     alpha: float = 1.
     radius: float = field(init=False)
+    groups: dict[Layer, pygame.sprite.Group] = field(default=None, repr=False)
     _original_image: Surface = field(init=False, repr=False)
     _position: Vector2 = field(init=False)
 

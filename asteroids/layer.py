@@ -7,4 +7,5 @@ class Layer(IntEnum):
     PLAYERS = auto()
     ENEMY_BULLETS = auto()
     ENEMIES = auto()
+    POWER_UP = auto()
     ANIMATIONS = auto()

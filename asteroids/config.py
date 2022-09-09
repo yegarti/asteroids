@@ -59,3 +59,6 @@ class Config(NamedTuple):
     explosion_sound: str = 'explosionCrunch_000'
     hit_sound: str = 'lowFrequency_explosion_000'
     global_volume: float = .5
+    power_up_health: str = 'pill_green'
+    powerup_sound: str = 'sfx_twoTone'
+    power_up_health_amount: int = 20
