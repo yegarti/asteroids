@@ -73,6 +73,11 @@ class Asteroids:
             probability=get_config().alien_spawn_frequency_per_seconds
         )), 1000)
 
+        pg.time.set_timer(GameEvents.spawn_powerup(
+            SpawnPowerUpInfo(
+                power_up='health',
+            )), get_config().power_up_freq_s * 1000)
+
     def _init_player(self):
         self.lives -= 1
 
@@ -130,9 +135,6 @@ class Asteroids:
                 pygame.event.post(
                     GameEvents.spawn_powerup(
                         SpawnPowerUpInfo(
-                            duration=5,
-                            image=get_config().power_up_health,
-                            scale=1.0,
                             power_up='health',
                         )))
 
@@ -306,14 +308,17 @@ class Asteroids:
 
     def _spawn_powerup(self, info: SpawnPowerUpInfo):
         power = PowerUp.new(info.power_up)
+        power_config = get_config().power_up[info.power_up]
+        if random() > power_config.frequency:
+            return
         pos = Vector2(
             randrange(100, self.screen.get_width() - 100),
             randrange(100, self.screen.get_height() - 100))
+        duration = randrange(*power_config.duration_s) * 1000
         self.layers[Layer.POWER_UP].add(
-            power(image_name=info.image,
-                  scale=info.scale,
+            power(image_name=power_config.image,
                   pos=pos,
-                  duration_s=info.duration,
+                  duration=duration,
                   groups=self.layers,
                   )
         )
@@ -321,9 +326,9 @@ class Asteroids:
     def check_powerups(self):
         for powerup in self.layers[Layer.POWER_UP]:
             powerup: PowerUp
-            powerup.duration_s -= self.delta / 1000
+            powerup.duration -= self.delta
             if self.player.alive() and pg.sprite.collide_circle(powerup, self.player):
                 powerup.activate()
                 powerup.kill()
-            if powerup.duration_s < 0:
+            if powerup.duration < 0:
                 powerup.kill()
