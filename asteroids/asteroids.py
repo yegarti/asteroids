@@ -1,7 +1,7 @@
 import logging
 import math
 import re
-from random import random, choice
+from random import random, choice, randrange
 from typing import Sequence, Type
 
 import pygame as pg
@@ -130,7 +130,6 @@ class Asteroids:
                 pygame.event.post(
                     GameEvents.spawn_powerup(
                         SpawnPowerUpInfo(
-                            position=Vector2(random() * 800, random() * 800),
                             duration=0,
                             image=get_config().power_up_health,
                             scale=1.0,
@@ -307,10 +306,13 @@ class Asteroids:
 
     def _spawn_powerup(self, info: SpawnPowerUpInfo):
         power = PowerUp.new(info.power_up)
+        pos = Vector2(
+            randrange(100, self.screen.get_width() - 100),
+            randrange(100, self.screen.get_height() - 100))
         self.layers[Layer.POWER_UP].add(
             power(image_name=info.image,
                   scale=info.scale,
-                  pos=info.position,
+                  pos=pos,
                   duration=info.duration,
                   groups=self.layers,
                   )

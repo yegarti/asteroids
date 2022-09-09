@@ -31,7 +31,6 @@ class SpawnAlienInfo(NamedTuple):
 
 
 class SpawnPowerUpInfo(NamedTuple):
-    position: Vector2
     duration: float
     image: str
     scale: float
