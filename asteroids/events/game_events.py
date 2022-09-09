@@ -4,7 +4,7 @@ from typing import NamedTuple, Any
 import pygame as pg
 from pygame.event import Event
 
-from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo
+from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo, SpawnAlienInfo
 
 
 class EventId(IntEnum):
@@ -12,8 +12,6 @@ class EventId(IntEnum):
         return pg.USEREVENT + count
     SPAWN_ASTEROID = auto()
     SHOT_BULLET = auto()
-    BULLET_HIT = auto()
-    THRUST_ON = auto()
     PLAYER_DEAD = auto()
     SPAWN_ALIEN = auto()
     GAME_OVER = auto()
@@ -22,7 +20,7 @@ class EventId(IntEnum):
 class GameEvents:
 
     @staticmethod
-    def _gen_event(event: EventId, info: NamedTuple):
+    def _gen_event(event: EventId, info: NamedTuple = None):
         return Event(event.value, info=info)
 
     @staticmethod
@@ -32,6 +30,15 @@ class GameEvents:
     @staticmethod
     def spawn_asteroid(info: SpawnAsteroidInfo) -> Event:
         return GameEvents._gen_event(EventId.SPAWN_ASTEROID, info)
-    # @staticmethod
-    # def spawn_alien(info: SpawnAsteroidInfo) -> Event:
-    #     return GameEvents._gen_event(EventId.SPAWN_ALIEN, info)
+
+    @staticmethod
+    def player_dead() -> Event:
+        return GameEvents._gen_event(EventId.PLAYER_DEAD)
+
+    @staticmethod
+    def spawn_alien(info: SpawnAlienInfo) -> Event:
+        return GameEvents._gen_event(EventId.SPAWN_ALIEN, info)
+
+    @staticmethod
+    def game_over() -> Event:
+        return GameEvents._gen_event(EventId.GAME_OVER)

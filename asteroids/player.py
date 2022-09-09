@@ -71,7 +71,7 @@ class Player(Actor):
         self.alpha = self.alpha * .96
         if self.alpha < .2:
             self.kill()
-            pygame.event.post(pygame.event.Event(EventId.PLAYER_DEAD))
+            pygame.event.post(GameEvents.player_dead())
 
     def explode(self):
         self._dead = True

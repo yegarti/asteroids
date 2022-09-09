@@ -58,3 +58,4 @@ class Config(NamedTuple):
     thrust_sound: str = 'thrusterFire_000'
     explosion_sound: str = 'explosionCrunch_000'
     hit_sound: str = 'lowFrequency_explosion_000'
+    global_volume: float = .5

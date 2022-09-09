@@ -24,3 +24,7 @@ class SpawnAsteroidInfo(NamedTuple):
     position: Optional[Vector2]
     size: str
     color: Optional[str]
+
+
+class SpawnAlienInfo(NamedTuple):
+    probability: float

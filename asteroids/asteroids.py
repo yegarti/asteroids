@@ -14,7 +14,7 @@ from asteroids.asteroid import Asteroid
 from asteroids.bullet import Bullet
 from asteroids.config import Config, get_config
 from asteroids.events.game_events import EventId, GameEvents
-from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo
+from asteroids.events.events_info import ShotBulletInfo, SpawnAsteroidInfo, SpawnAlienInfo
 from asteroids.gui import GUI
 from asteroids.layer import Layer
 from asteroids.player import Player
@@ -68,14 +68,16 @@ class Asteroids:
                 position=None,
             )), get_config().asteroid_spawn_frequency_ms)
 
-        pg.time.set_timer(pygame.event.Event(EventId.SPAWN_ALIEN), 1000)
+        pg.time.set_timer(GameEvents.spawn_alien(SpawnAlienInfo(
+            probability=get_config().alien_spawn_frequency_per_seconds
+        )), 1000)
 
     def _init_player(self):
         self.lives -= 1
 
         # make sure event trigger only once
         if self.lives == -1:
-            pygame.event.post(pygame.event.Event(EventId.GAME_OVER))
+            pygame.event.post(GameEvents.game_over())
             return
 
         self.player = Player(pos=self._get_center(),
@@ -118,9 +120,9 @@ class Asteroids:
                 self._game_over = True
             if event.type == EventId.SPAWN_ALIEN:
                 log.debug("Spawn alien event")
-                self._spawn_alien(probability=get_config().alien_spawn_frequency_per_seconds)
+                self._spawn_alien(event.info)
             if event.type == pg.KEYDOWN and event.key == pg.K_j:
-                self._spawn_alien()
+                self._spawn_alien(SpawnAlienInfo(probability=1.))
 
     def _random_value_in_range(self, min_val: float, max_val: float):
         value = random() * (max_val - min_val) + min_val
@@ -267,8 +269,8 @@ class Asteroids:
             if pg.sprite.collide_circle(self.player, asteroid):
                 self.player.on_asteroid_hit()
 
-    def _spawn_alien(self, probability=1.):
-        if random() > probability or self.alien in self.layers[Layer.ENEMIES]:
+    def _spawn_alien(self, info: SpawnAlienInfo):
+        if random() > info.probability or self.alien in self.layers[Layer.ENEMIES]:
             return
         velocity = Vector2(get_config().alien_velocity, get_config().alien_velocity)
         pos, spawn_loc = self._random_border_location(relative_area=.8)

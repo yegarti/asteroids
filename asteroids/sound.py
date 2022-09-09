@@ -5,6 +5,7 @@ from typing import NamedTuple
 
 import pygame.mixer
 
+from asteroids.config import get_config
 from asteroids.utils import load_sound
 
 
@@ -33,7 +34,7 @@ class SoundManager:
         if unique and sound in SoundManager._playing:
             return
         _sound = SoundManager._sounds[sound]
-        _sound.pg_sound.set_volume(volume / 100)
+        _sound.pg_sound.set_volume(volume / 100 * get_config().global_volume)
         _sound.pg_sound.play(loops)
         SoundManager._playing[sound] = _sound.length
 

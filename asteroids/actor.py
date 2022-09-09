@@ -21,14 +21,12 @@ class Actor(StaticActor):
     ANGULAR_SPEED = 1
     MAX_VELOCITY = 1.
     THRUST_MULT = .01
-    HITBOX_RADIUS_RATIO = 0.9
     HIT_DURATION = .1
     HIT_MARK_DURATION_MS = 100
 
     health: int = 1
     angle: float = 0
     velocity: Vector2 = field(default_factory=Vector2)
-    radius: float = field(init=False)
     thrust: float = field(init=False, default=0)
     groups: dict[Layer, pg.sprite.Group] = field(default=None, repr=False)
     active: bool = True
@@ -39,7 +37,6 @@ class Actor(StaticActor):
 
     def __post_init__(self, pos: Vector2):
         super().__post_init__(pos)
-        self.radius = self.image.get_width() / 2 * self.HITBOX_RADIUS_RATIO
         self._update_physics()
 
     def _scale(self, factor):

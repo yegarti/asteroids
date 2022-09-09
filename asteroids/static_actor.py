@@ -21,8 +21,11 @@ class StaticActor(Sprite):
     image: Surface = field(init=False, repr=False)
     rect: Rect = field(init=False, repr=False)
     alpha: float = 1.
+    radius: float = field(init=False)
     _original_image: Surface = field(init=False, repr=False)
     _position: Vector2 = field(init=False)
+
+    HITBOX_RADIUS_RATIO = 0.9
 
     def __post_init__(self, pos: Vector2):
         super().__init__()
@@ -32,6 +35,7 @@ class StaticActor(Sprite):
         self.image.set_alpha(math.floor(self.alpha * 255))
         self.rect = self.image.get_rect()
         self.position = Vector2(pos)
+        self.radius = self.image.get_width() / 2 * self.HITBOX_RADIUS_RATIO
 
     @property
     def position(self):
