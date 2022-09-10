@@ -20,6 +20,7 @@ from asteroids.layer import Layer
 from asteroids.player import Player
 from asteroids.power_up import Health, PowerUp
 from asteroids.sound import SoundManager
+from asteroids.spawner import Spawner
 from asteroids.text import Text
 from asteroids.utils import load_image, repeat_surface, get_sprites_path
 
@@ -52,9 +53,9 @@ class Asteroids:
         self._init_player()
         self.sound_manager = SoundManager
         self.sound_manager.init()
-        self._init_asteroid_sprites()
         self.alien = None
         self._pause = False
+        self.spawner = Spawner(self.layers)
 
         self._text = Text(get_config().gui_font)
 
@@ -91,15 +92,6 @@ class Asteroids:
         self.layers[Layer.PLAYERS].add(self.player)
         self.gui.health = self.player.health
 
-    def _init_asteroid_sprites(self):
-        self.asteroids_sprites: dict[str, dict[str, list[str]]] = {}
-        for sprite in get_sprites_path().iterdir():
-            match = re.match(r'(meteor(\w+)_(\w+)\d).png', sprite.name)
-            if match:
-                name, color, size = match.groups()
-                size = 'medium' if size == 'med' else size
-                self.asteroids_sprites.setdefault(color.lower(), {}).setdefault(size, []).append(name)
-
     def _get_center(self):
         return (self.screen.get_width() // 2,
                 self.screen.get_height() // 2)
@@ -122,7 +114,7 @@ class Asteroids:
 
             if event.type == EventId.SPAWN_ASTEROID:
                 log.debug('Spawn asteroid event')
-                self._spawn_new_asteroid(event.info)
+                self.spawner.spawn_asteroid(event.info)
             if event.type == EventId.SHOT_BULLET:
                 log.debug('Shot bullet event')
                 self._shot(event.info)
@@ -135,11 +127,11 @@ class Asteroids:
                 self._game_over = True
             if event.type == EventId.SPAWN_ALIEN:
                 log.debug("Spawn alien event")
-                self._spawn_alien(event.info)
+                self.spawner.spawn_alien(event.info)
             if event.type == pg.KEYDOWN and event.key == pg.K_j:
-                self._spawn_alien(SpawnAlienInfo(probability=1.))
+                self.spawner.spawn_alien(SpawnAlienInfo(probability=1.))
             if event.type == EventId.SPAWN_POWERUP:
-                self._spawn_powerup(event.info)
+                self.spawner.spawn_powerup(event.info)
             if event.type == pg.KEYDOWN and event.key == pg.K_o:
                 pygame.event.post(
                     GameEvents.spawn_powerup(
@@ -147,71 +139,7 @@ class Asteroids:
                             power_ups=tuple(get_config().power_up.keys())
                         )))
 
-    def _random_value_in_range(self, min_val: float, max_val: float):
-        value = random() * (max_val - min_val) + min_val
-        return value
-
-    def _random_border_location(self, relative_area: float = 0.):
-        width, height = self.screen.get_width(), self.screen.get_height()
-        spawn_location = choice(['top', 'left', 'right', 'bottom'])
-        rand_height = self._random_value_in_range(height * relative_area, height * (1 - relative_area))
-        rand_width = self._random_value_in_range(width * relative_area, width * (1 - relative_area))
-        match spawn_location:
-            case 'top':
-                pos = [rand_width, -get_config().out_of_screen_offset_spawn]
-            case 'left':
-                pos = [-get_config().out_of_screen_offset_spawn, rand_height]
-            case 'right':
-                pos = [width + get_config().out_of_screen_offset_spawn, rand_height]
-            case 'bottom':
-                pos = [rand_width, height + get_config().out_of_screen_offset_spawn]
-            case _:
-                raise ValueError(f'Unknown spawn location: {spawn_location}')
-        return pos, spawn_location
-        # return pos, xvel, yvel, spawn_location
-
-    def _spawn_new_asteroid(self, info: SpawnAsteroidInfo):
-        if len([a for a in self.layers[Layer.ASTEROIDS] if a.size == 'big']) >= get_config().max_asteroids and info.size == 'big':
-            log.debug("Too many big asteroids on screen")
-            return
-        x_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
-        y_vel = [-self.config.asteroid_max_velocity, self.config.asteroid_max_velocity]
-        if not info.position:
-            pos, spawn_location = self._random_border_location()
-            match spawn_location:
-                case 'top':
-                    y_vel[0] = self.config.asteroid_min_velocity
-                case 'left':
-                    x_vel[0] = self.config.asteroid_min_velocity
-                case 'right':
-                    x_vel[1] = -self.config.asteroid_min_velocity
-                case 'bottom':
-                    y_vel[1] = -self.config.asteroid_min_velocity
-            log.debug('Spawning asteroid from %s at pos (%d, %d) and velocity range (x=%s, y=%s)',
-                      spawn_location, x_vel, y_vel, *pos)
-        else:
-            pos = info.position
-
-        velocity = Vector2(self._random_value_in_range(*x_vel),
-                           self._random_value_in_range(*y_vel))
-
-        ang_vel = self._random_value_in_range(-self.config.asteroid_max_angular_velocity,
-                                              self.config.asteroid_max_angular_velocity)
-
-        color = info.color
-        if not info.color:
-            color = choice(list(self.asteroids_sprites.keys()))
-
-        asteroid = Asteroid(angular_velocity=ang_vel,
-                            image_name=choice(self.asteroids_sprites[color][info.size]),
-                            size=info.size, color=color,
-                            pos=pos, velocity=velocity)
-        self.layers[Layer.ASTEROIDS].add(asteroid)
-        log.debug("Spawned %s", asteroid)
-        self.layers[Layer.ASTEROIDS].add(asteroid)
-
     def _shot(self, info: ShotBulletInfo):
-
         bullet_config = info.bullet_config
         x = -math.sin(math.radians(info.angle))
         y = -math.cos(math.radians(info.angle))
@@ -254,6 +182,10 @@ class Asteroids:
         if self.player.is_dead() and self.player.active:
             self.player.explode()
             self.sound_manager.play(get_config().player_die_sound)
+        try:
+            self.alien = self.layers[Layer.ENEMIES].sprites()[0]
+        except IndexError:
+            self.alien = None
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
@@ -296,53 +228,12 @@ class Asteroids:
             if pg.sprite.collide_circle(self.player, asteroid):
                 self.player.on_asteroid_hit()
 
-    def _spawn_alien(self, info: SpawnAlienInfo):
-        if random() > info.probability or self.alien in self.layers[Layer.ENEMIES]:
-            return
-        velocity = Vector2(get_config().alien_velocity, get_config().alien_velocity)
-        pos, spawn_loc = self._random_border_location(relative_area=.8)
-        velocity = velocity.elementwise() * {
-            'top': Vector2(0, 1),
-            'bottom': Vector2(0, -1),
-            'left': Vector2(1, 0),
-            'right': Vector2(-1, 0),
-        }[spawn_loc]
-        self.alien = Alien(velocity=velocity, scale=.7, pos=pos, groups=self.layers)
-        log.info(f"Spawning alien: {self.alien}")
-        self.layers[Layer.ENEMIES].add(self.alien)
-
     def check_asteroid_hit_alien(self):
         bullet: Bullet
         for bullet in self.layers[Layer.ENEMY_BULLETS]:
             if pg.sprite.collide_circle(bullet, self.player):
                 bullet.on_hit()
                 self.player.on_bullet_hit(bullet)
-
-    def _spawn_powerup(self, info: SpawnPowerUpInfo):
-        for power_name in info.power_ups:
-            power = PowerUp.new(power_name)
-            power_config = get_config().power_up[power_name]
-            if random() > power_config.frequency:
-                continue
-
-            spawn_area = get_config().power_up_spawn_area
-            width_spawn_area = int(self.screen.get_width() * spawn_area)
-            height_spawn_area = int(self.screen.get_height() * spawn_area)
-            pos = Vector2(
-                randrange(width_spawn_area,
-                          self.screen.get_width() - width_spawn_area),
-                randrange(height_spawn_area,
-                          self.screen.get_height() - height_spawn_area))
-
-            duration = randrange(*power_config.duration_s) * 1000
-
-            power_inst = power(image_name=power_config.image,
-                               pos=pos,
-                               duration=duration,
-                               groups=self.layers,
-                               )
-            if power_inst.can_spawn():
-                self.layers[Layer.POWER_UP].add(power_inst)
 
     def check_powerups(self):
         for powerup in self.layers[Layer.POWER_UP]:

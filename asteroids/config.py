@@ -77,7 +77,7 @@ class Config(NamedTuple):
                       damage=2,
                       hit_images=('bullet_hit1', 'bullet_hit2')),
     )
-    alien_spawn_frequency_per_seconds: float = .05
+    alien_spawn_frequency_per_seconds: float = .025
     alien_velocity: float = .2
     alien_bullet: _BulletConfig = _BulletConfig(velocity=.5,
                                                 scale=1.,
@@ -100,12 +100,12 @@ class Config(NamedTuple):
         'health': _PowerConfig(
             image='pill_green',
             duration_s=(20, 60),
-            frequency=0.05
+            frequency=0.06
         ),
         'laser': _PowerConfig(
             image='things_blue',
             duration_s=(10, 20),
-            frequency=0.01,
+            frequency=0.03,
         )
     }
     power_up_freq_s: int = 1
