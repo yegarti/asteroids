@@ -17,6 +17,7 @@ class _BulletConfig(NamedTuple):
     velocity: float
     scale: float
     duration: float
+    cooldown: float
     damage: int
     hit_images: tuple[str, ...]
 
@@ -43,6 +44,7 @@ class Config(NamedTuple):
     player_bullet: _BulletConfig = _BulletConfig(velocity=1.,
                                                  scale=.8,
                                                  duration=500,
+                                                 cooldown=130,
                                                  image='bullet',
                                                  sound='sfx_laser2',
                                                  damage=1,
@@ -52,6 +54,7 @@ class Config(NamedTuple):
     alien_bullet: _BulletConfig = _BulletConfig(velocity=.5,
                                                 scale=1.,
                                                 duration=1000,
+                                                cooldown=1000,
                                                 image='laserRed01',
                                                 sound='laserSmall_002',
                                                 damage=10,

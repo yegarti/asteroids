@@ -16,7 +16,6 @@ from asteroids.static_actor import StaticActor
 
 class Player(Actor):
     ANGULAR_SPEED = 3.5
-    SHOT_COOLDOWN_MS = 330
     MAX_VELOCITY = .3
     FRONT_THURST_OFFSET = (0, 30)
 
@@ -26,6 +25,7 @@ class Player(Actor):
         self._health = 100
         self._front_thrust = StaticActor('fire01')
         self._dead = False
+        self._bullet_config = get_config().player_bullet
 
     @property
     def health(self):
@@ -60,7 +60,7 @@ class Player(Actor):
         if keys[K_SPACE]:
             if self._cooldown <= 0:
                 self.shot()
-                self._cooldown = self.SHOT_COOLDOWN_MS
+                self._cooldown = self._bullet_config.cooldown
         self._cooldown -= dt
         self._cooldown = max(self._cooldown, 0)
 
@@ -68,9 +68,8 @@ class Player(Actor):
         pg.event.post(GameEvents.shot_bullet(ShotBulletInfo(
             position=self.position,
             angle=self.angle,
-            constant_velocity=self.velocity,
             layer=Layer.BULLETS,
-            **get_config().player_bullet._asdict(),
+            bullet_config=self._bullet_config,
         )))
 
     def _die_slowly(self, dt):

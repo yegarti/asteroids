@@ -207,19 +207,20 @@ class Asteroids:
 
     def _shot(self, info: ShotBulletInfo):
 
+        bullet_config = info.bullet_config
         x = -math.sin(math.radians(info.angle))
         y = -math.cos(math.radians(info.angle))
-        velocity = pg.math.Vector2(x, y) * info.velocity
-        bullet = Bullet(image_name=info.image, pos=info.position,
+        velocity = pg.math.Vector2(x, y) * bullet_config.velocity
+        bullet = Bullet(image_name=bullet_config.image, pos=info.position,
                         velocity=velocity, angle=info.angle,
-                        scale=info.scale, ttl=info.duration,
-                        damage=info.damage,
+                        scale=bullet_config.scale, ttl=bullet_config.duration,
+                        damage=bullet_config.damage,
                         groups=self.layers,
-                        hit_animation_images=info.hit_images)
+                        hit_animation_images=bullet_config.hit_images)
 
         log.debug("Shot bullet %s", bullet)
         self.layers[info.layer].add(bullet)
-        self.sound_manager.play(info.sound)
+        self.sound_manager.play(bullet_config.sound)
 
     def update(self):
         dt = self._clock.tick(60)

@@ -15,12 +15,11 @@ from asteroids.utils import load_image, load_sound
 
 class Alien(Actor):
 
-    SHOT_COOLDOWN_MS = 1000
     ANGULAR_SPEED = 4.4
 
     def __init__(self, *args, **kwargs):
         super().__init__('ufoGreen', *args, **kwargs)
-        self._cooldown = self.SHOT_COOLDOWN_MS
+        self._cooldown = get_config().alien_bullet.cooldown
         self.health = 5
         self.teleport = False
         self.spawned = False
@@ -55,13 +54,12 @@ class Alien(Actor):
                 GameEvents.shot_bullet(
                     ShotBulletInfo(
                         position=self.position,
-                        constant_velocity=self.velocity,
+                        bullet_config=get_config().alien_bullet,
                         angle=shot_direction,
                         layer=Layer.ENEMY_BULLETS,
-                        **get_config().alien_bullet._asdict(),
                     ))
             )
-            self._cooldown = self.SHOT_COOLDOWN_MS
+            self._cooldown = get_config().alien_bullet.cooldown
 
     def _die_slowly(self, dt):
         self.angle += 300 * dt / 1000
