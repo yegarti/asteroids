@@ -66,6 +66,14 @@ class Config(NamedTuple):
                       sound='sfx_laser2',
                       damage=1,
                       hit_images=('bullet_hit1', 'bullet_hit2')),
+        _BulletConfig(velocity=1.,
+                      scale=.8,
+                      duration=1000,
+                      cooldown=200,
+                      image='laserBlue02',
+                      sound='sfx_laser2',
+                      damage=2,
+                      hit_images=('bullet_hit1', 'bullet_hit2')),
     )
     alien_spawn_frequency_per_seconds: float = .05
     alien_velocity: float = .2
@@ -90,15 +98,15 @@ class Config(NamedTuple):
         'health': _PowerConfig(
             image='pill_green',
             duration_s=(20, 60),
-            frequency=0.5
+            frequency=0.05
         ),
         'laser': _PowerConfig(
             image='things_blue',
             duration_s=(10, 20),
-            frequency=0.1,
+            frequency=0.01,
         )
     }
-    power_up_freq_s: float = 10
+    power_up_freq_s: int = 1
     power_up_spawn_area: float = 0.1
     powerup_sound: str = 'sfx_twoTone'
     power_up_health_amount: int = 20

@@ -25,4 +25,4 @@ class SpawnAlienInfo(NamedTuple):
 
 
 class SpawnPowerUpInfo(NamedTuple):
-    power_up: str
+    power_ups: tuple[str]

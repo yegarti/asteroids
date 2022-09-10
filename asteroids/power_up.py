@@ -27,7 +27,6 @@ class PowerUp(StaticActor):
     def _get_player(self):
         try:
             player: Player = self.groups[Layer.PLAYERS].sprites()[0]
-            player.health += get_config().power_up_health_amount
         except IndexError:
             pass
         return player or None
@@ -60,10 +59,3 @@ class Fire(PowerUp):
         if player := self._get_player():
             return player.laser_level < player.laser_max_level
         return False
-
-
-class Nuke(PowerUp):
-    def activate(self):
-        #spawn nuke event
-        pass
-    pass

@@ -76,7 +76,7 @@ class Asteroids:
         for powerup in ('health', 'laser'):
             pg.time.set_timer(GameEvents.spawn_powerup(
                 SpawnPowerUpInfo(
-                    power_up=powerup,
+                    power_ups=tuple(get_config().power_up.keys()),
                 )), get_config().power_up_freq_s * 1000)
 
     def _init_player(self):
@@ -136,7 +136,7 @@ class Asteroids:
                 pygame.event.post(
                     GameEvents.spawn_powerup(
                         SpawnPowerUpInfo(
-                            power_up='laser',
+                            power_ups=tuple(get_config().power_up.keys())
                         )))
 
     def _random_value_in_range(self, min_val: float, max_val: float):
@@ -309,29 +309,30 @@ class Asteroids:
                 self.player.on_bullet_hit(bullet)
 
     def _spawn_powerup(self, info: SpawnPowerUpInfo):
-        power = PowerUp.new(info.power_up)
-        power_config = get_config().power_up[info.power_up]
-        if random() > power_config.frequency:
-            return
+        for power_name in info.power_ups:
+            power = PowerUp.new(power_name)
+            power_config = get_config().power_up[power_name]
+            if random() > power_config.frequency:
+                continue
 
-        spawn_area = get_config().power_up_spawn_area
-        width_spawn_area = int(self.screen.get_width() * spawn_area)
-        height_spawn_area = int(self.screen.get_height() * spawn_area)
-        pos = Vector2(
-            randrange(width_spawn_area,
-                      self.screen.get_width() - width_spawn_area),
-            randrange(height_spawn_area,
-                      self.screen.get_height() - height_spawn_area))
+            spawn_area = get_config().power_up_spawn_area
+            width_spawn_area = int(self.screen.get_width() * spawn_area)
+            height_spawn_area = int(self.screen.get_height() * spawn_area)
+            pos = Vector2(
+                randrange(width_spawn_area,
+                          self.screen.get_width() - width_spawn_area),
+                randrange(height_spawn_area,
+                          self.screen.get_height() - height_spawn_area))
 
-        duration = randrange(*power_config.duration_s) * 1000
+            duration = randrange(*power_config.duration_s) * 1000
 
-        power_inst = power(image_name=power_config.image,
-                           pos=pos,
-                           duration=duration,
-                           groups=self.layers,
-                           )
-        if power_inst.can_spawn():
-            self.layers[Layer.POWER_UP].add(power_inst)
+            power_inst = power(image_name=power_config.image,
+                               pos=pos,
+                               duration=duration,
+                               groups=self.layers,
+                               )
+            if power_inst.can_spawn():
+                self.layers[Layer.POWER_UP].add(power_inst)
 
     def check_powerups(self):
         for powerup in self.layers[Layer.POWER_UP]:
