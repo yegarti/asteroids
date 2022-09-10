@@ -27,6 +27,14 @@ class SoundManager:
         pygame.mixer.set_num_channels(16)
 
     @staticmethod
+    def mute():
+        pygame.mixer.pause()
+
+    @staticmethod
+    def unmute():
+        pygame.mixer.unpause()
+
+    @staticmethod
     def play(sound: str, loop=False, volume=100, unique=False):
         SoundManager._check_sound(sound)
         SoundManager._update()

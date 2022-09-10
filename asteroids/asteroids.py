@@ -54,6 +54,7 @@ class Asteroids:
         self.sound_manager.init()
         self._init_asteroid_sprites()
         self.alien = None
+        self._pause = False
 
         self._text = Text(get_config().gui_font)
 
@@ -109,6 +110,16 @@ class Asteroids:
                     event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 log.debug('Quit event')
                 self.is_running = False
+            if event.type == pg.KEYDOWN and event.key == pg.K_p:
+                self._pause = not self._pause
+                if self._pause:
+                    SoundManager.mute()
+                else:
+                    SoundManager.unmute()
+
+            if self._pause:
+                continue
+
             if event.type == EventId.SPAWN_ASTEROID:
                 log.debug('Spawn asteroid event')
                 self._spawn_new_asteroid(event.info)
@@ -220,12 +231,16 @@ class Asteroids:
         dt = self._clock.tick(60)
         keys = pg.key.get_pressed()
         self.delta = dt
+        log.debug("Handling game events")
+        self._handle_events()
+
+        if self._pause:
+            return
+
         log.debug("Updating actors")
         for group in self.layers.values():
             group.update(dt, keys)
         self.check_actions()
-        log.debug("Handling game events")
-        self._handle_events()
         self.gui.health = self.player.health
         self.gui.lives = self.lives
         if self.player.thrust != 0:
@@ -249,6 +264,8 @@ class Asteroids:
         if self._game_over:
             self._text.render('Game Over', 40, Vector2(self._get_center()) + Vector2(0, -100))
             self._text.render(f'{self.gui.score}', 32, Vector2(self._get_center()) + Vector2(0, -50))
+        if self._pause:
+            self._text.render("Game paused", 40, Vector2(self._get_center()))
         pg.display.flip()
 
     def check_actions(self):
