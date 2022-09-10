@@ -73,5 +73,6 @@ class Config(NamedTuple):
         ),
     }
     power_up_freq_s: float = 10
+    power_up_spawn_area: float = 0.1
     powerup_sound: str = 'sfx_twoTone'
     power_up_health_amount: int = 20

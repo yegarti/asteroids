@@ -311,10 +311,18 @@ class Asteroids:
         power_config = get_config().power_up[info.power_up]
         if random() > power_config.frequency:
             return
+
+        spawn_area = get_config().power_up_spawn_area
+        width_spawn_area = int(self.screen.get_width() * spawn_area)
+        height_spawn_area = int(self.screen.get_height() * spawn_area)
         pos = Vector2(
-            randrange(100, self.screen.get_width() - 100),
-            randrange(100, self.screen.get_height() - 100))
+            randrange(width_spawn_area,
+                      self.screen.get_width() - width_spawn_area),
+            randrange(height_spawn_area,
+                      self.screen.get_height() - height_spawn_area))
+
         duration = randrange(*power_config.duration_s) * 1000
+
         self.layers[Layer.POWER_UP].add(
             power(image_name=power_config.image,
                   pos=pos,
