@@ -41,14 +41,32 @@ class Config(NamedTuple):
     lives: int = 3
     player_asteroid_damage: float = .5
     player_scale: float = .5
-    player_bullet: _BulletConfig = _BulletConfig(velocity=1.,
-                                                 scale=.8,
-                                                 duration=500,
-                                                 cooldown=130,
-                                                 image='bullet',
-                                                 sound='sfx_laser2',
-                                                 damage=1,
-                                                 hit_images=('bullet_hit1', 'bullet_hit2'))
+    player_bullet: tuple[_BulletConfig] = (
+        _BulletConfig(velocity=1.,
+                      scale=.8,
+                      duration=500,
+                      cooldown=330,
+                      image='bullet',
+                      sound='sfx_laser2',
+                      damage=1,
+                      hit_images=('bullet_hit1', 'bullet_hit2')),
+        _BulletConfig(velocity=1.,
+                      scale=.8,
+                      duration=500,
+                      cooldown=200,
+                      image='bullet',
+                      sound='sfx_laser2',
+                      damage=1,
+                      hit_images=('bullet_hit1', 'bullet_hit2')),
+        _BulletConfig(velocity=1.,
+                      scale=.8,
+                      duration=1000,
+                      cooldown=200,
+                      image='bullet',
+                      sound='sfx_laser2',
+                      damage=1,
+                      hit_images=('bullet_hit1', 'bullet_hit2')),
+    )
     alien_spawn_frequency_per_seconds: float = .05
     alien_velocity: float = .2
     alien_bullet: _BulletConfig = _BulletConfig(velocity=.5,
@@ -74,6 +92,11 @@ class Config(NamedTuple):
             duration_s=(20, 60),
             frequency=0.5
         ),
+        'laser': _PowerConfig(
+            image='things_blue',
+            duration_s=(10, 20),
+            frequency=0.1,
+        )
     }
     power_up_freq_s: float = 10
     power_up_spawn_area: float = 0.1

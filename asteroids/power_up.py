@@ -21,28 +21,46 @@ class PowerUp(StaticActor):
     def activate(self):
         SoundManager.play(get_config().powerup_sound)
 
-    @staticmethod
-    def new(name: str) -> Type['PowerUp']:
-        match name:
-            case 'health':
-                return Health
+    def can_spawn(self):
+        return True
 
-
-class Health(PowerUp):
-    def activate(self):
-        super().activate()
+    def _get_player(self):
         try:
             player: Player = self.groups[Layer.PLAYERS].sprites()[0]
             player.health += get_config().power_up_health_amount
         except IndexError:
             pass
+        return player or None
+
+    @staticmethod
+    def new(name: str) -> Type['PowerUp']:
+        match name:
+            case 'health':
+                return Health
+            case 'laser':
+                return Fire
+            case _:
+                raise ValueError(f'Unknown powerup: {name}')
+
+
+class Health(PowerUp):
+    def activate(self):
+        super().activate()
+        if player := self._get_player():
+            player.health += get_config().power_up_health_amount
 
 
 class Fire(PowerUp):
     def activate(self):
-        # spawn bullet upgrade event
-        pass
-    pass
+        super().activate()
+        if player := self._get_player():
+            player.laser_level += 1
+
+    def can_spawn(self):
+        if player := self._get_player():
+            return player.laser_level < player.laser_max_level
+        return False
+
 
 class Nuke(PowerUp):
     def activate(self):

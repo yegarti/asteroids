@@ -25,7 +25,18 @@ class Player(Actor):
         self._health = 100
         self._front_thrust = StaticActor('fire01')
         self._dead = False
-        self._bullet_config = get_config().player_bullet
+        self.laser_max_level = len(get_config().player_bullet) - 1
+        self.laser_level = 0
+        self._bullet_config = get_config().player_bullet[self.laser_level]
+
+    @property
+    def laser_level(self):
+        return self._laser_level
+
+    @laser_level.setter
+    def laser_level(self, value):
+        self._laser_level = min(value, self.laser_max_level)
+        self._bullet_config = get_config().player_bullet[self.laser_level]
 
     @property
     def health(self):

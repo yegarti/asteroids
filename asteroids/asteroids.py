@@ -73,10 +73,11 @@ class Asteroids:
             probability=get_config().alien_spawn_frequency_per_seconds
         )), 1000)
 
-        pg.time.set_timer(GameEvents.spawn_powerup(
-            SpawnPowerUpInfo(
-                power_up='health',
-            )), get_config().power_up_freq_s * 1000)
+        for powerup in ('health', 'laser'):
+            pg.time.set_timer(GameEvents.spawn_powerup(
+                SpawnPowerUpInfo(
+                    power_up=powerup,
+                )), get_config().power_up_freq_s * 1000)
 
     def _init_player(self):
         self.lives -= 1
@@ -135,7 +136,7 @@ class Asteroids:
                 pygame.event.post(
                     GameEvents.spawn_powerup(
                         SpawnPowerUpInfo(
-                            power_up='health',
+                            power_up='laser',
                         )))
 
     def _random_value_in_range(self, min_val: float, max_val: float):
@@ -324,13 +325,13 @@ class Asteroids:
 
         duration = randrange(*power_config.duration_s) * 1000
 
-        self.layers[Layer.POWER_UP].add(
-            power(image_name=power_config.image,
-                  pos=pos,
-                  duration=duration,
-                  groups=self.layers,
-                  )
-        )
+        power_inst = power(image_name=power_config.image,
+                           pos=pos,
+                           duration=duration,
+                           groups=self.layers,
+                           )
+        if power_inst.can_spawn():
+            self.layers[Layer.POWER_UP].add(power_inst)
 
     def check_powerups(self):
         for powerup in self.layers[Layer.POWER_UP]:
