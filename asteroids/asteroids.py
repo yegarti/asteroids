@@ -27,21 +27,23 @@ log = logging.getLogger(__name__)
 
 
 class Asteroids:
-    SPAWN_BORDER_OFFSET = 100
-    BACKGROUND_IMAGE = 'purple'
 
     def __init__(self):
         self.config: Config = get_config()
         pg.display.set_caption(self.config.title)
         log.debug('Setting screen to (%d,%d)', self.config.width, self.config.height)
-        self.screen = pg.display.set_mode((0, 0), pygame.FULLSCREEN)
+        if get_config().full_screen:
+            self.screen = pg.display.set_mode((0, 0), pygame.FULLSCREEN)
+        else:
+            self.screen = pg.display.set_mode((get_config().width,
+                                               get_config().height))
 
         self.is_running = True
         self._clock = pygame.time.Clock()
         self._game_over: bool = False
-        log.debug("Setting background to '%s'", self.BACKGROUND_IMAGE)
+        log.debug("Setting background to '%s'", get_config().background_image)
         self.background = repeat_surface(self.screen.get_size(),
-                                         load_image(self.BACKGROUND_IMAGE))
+                                         load_image(get_config().background_image))
         self.layers: dict[Layer, pg.sprite.Group] = {
             layer: pg.sprite.Group() for layer in sorted(Layer)
         }
@@ -54,11 +56,6 @@ class Asteroids:
         self.alien = None
 
         self._text = Text(get_config().gui_font)
-
-        # asteroid = Asteroid(angular_velocity=0, image_name=self.asteroids_sprites['brown']['big'][1],
-        #                     color='brown',
-        #                     pos=(400, 400), velocity=Vector2(0, 0), size='big')
-        # self.layers[Layer.ASTEROIDS].add(asteroid)
 
         self.delta = 0
         log.info("Setting spawn asteroid timer to %d ms", get_config().asteroid_spawn_frequency_ms)
@@ -150,17 +147,13 @@ class Asteroids:
         rand_width = self._random_value_in_range(width * relative_area, width * (1 - relative_area))
         match spawn_location:
             case 'top':
-                pos = [rand_width, -self.SPAWN_BORDER_OFFSET]
-                # yvel[0] = self.config.asteroid_min_velocity
+                pos = [rand_width, -get_config().out_of_screen_offset_spawn]
             case 'left':
-                pos = [-self.SPAWN_BORDER_OFFSET, rand_height]
-                # xvel[0] = self.config.asteroid_min_velocity
+                pos = [-get_config().out_of_screen_offset_spawn, rand_height]
             case 'right':
-                pos = [width + self.SPAWN_BORDER_OFFSET, rand_height]
-                # xvel[1] = -self.config.asteroid_min_velocity
+                pos = [width + get_config().out_of_screen_offset_spawn, rand_height]
             case 'bottom':
-                pos = [rand_width, height + self.SPAWN_BORDER_OFFSET]
-                # yvel[1] = -self.config.asteroid_min_velocity
+                pos = [rand_width, height + get_config().out_of_screen_offset_spawn]
             case _:
                 raise ValueError(f'Unknown spawn location: {spawn_location}')
         return pos, spawn_location

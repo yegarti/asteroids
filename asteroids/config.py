@@ -29,15 +29,17 @@ class _PowerConfig(NamedTuple):
 
 
 class Config(NamedTuple):
-    width: int = 1280
-    height: int = 720
-    size: tuple[int, int] = (1280, 720)
+    width: int = 1728
+    height: int = 972
+    full_screen: bool = True
     title: str = 'Asteroids'
     asteroid_max_velocity: float = .5
     asteroid_min_velocity: float = .1
     asteroid_max_angular_velocity: float = 2.0
     asteroid_spawn_frequency_ms: int = 1000
+    out_of_screen_offset_spawn: int = 100
     max_asteroids: int = 15
+    background_image: str = 'purple'
     lives: int = 3
     player_asteroid_damage: float = .5
     player_scale: float = .5

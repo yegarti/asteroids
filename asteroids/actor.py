@@ -38,12 +38,6 @@ class Actor(StaticActor):
         super().__post_init__(pos)
         self._update_physics()
 
-    def _scale(self, factor):
-        self._original_image = pg.transform.scale(
-            self._original_image,
-            (factor * self._original_image.get_width(),
-             factor * self._original_image.get_height()))
-
     def update(self, dt, keys) -> None:
         self._delta = dt
         self._hit_mark_cooldown -= dt
