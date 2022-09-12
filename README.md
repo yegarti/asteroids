@@ -14,7 +14,7 @@ Assets by [Kenney](https://www.kenney.nl)
 - Sprites class hierarchy (StaticActor --> Actor --> Player/Alien)
 - Powerups - health and shot upgrade
 
-# Installation
+## Installation
 ```python
 pip install -r requirements.txt
 python -m asteroids.game
