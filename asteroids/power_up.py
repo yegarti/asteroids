@@ -25,11 +25,12 @@ class PowerUp(StaticActor):
         return True
 
     def _get_player(self):
+        player = None
         try:
             player: Player = self.groups[Layer.PLAYERS].sprites()[0]
         except IndexError:
             pass
-        return player or None
+        return player
 
     @staticmethod
     def new(name: str) -> Type['PowerUp']:
